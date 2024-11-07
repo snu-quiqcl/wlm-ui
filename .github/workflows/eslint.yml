@@ -1,6 +1,6 @@
 name: ESLint
 
-on: [push]
+on: [pull_request]
 
 jobs:
   eslint:
