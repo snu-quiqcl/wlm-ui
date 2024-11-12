@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 const InitPage = () => {
-    const [username, setUsername] = useState<string>('')
-    const [password, setPassword] = useState<string>('')
+    const [username, setUsername] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
 
     const onClickSignin = async () => {};
 
