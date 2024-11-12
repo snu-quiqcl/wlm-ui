@@ -1,0 +1,15 @@
+name: ESLint
+
+on: [pull_request]
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      working-directory: wlm-ui
+      run: yarn install
+    - name: Analyze the code with ESLint
+      working-directory: wlm-ui
+      run: yarn eslint . --config eslint.config.mjs
