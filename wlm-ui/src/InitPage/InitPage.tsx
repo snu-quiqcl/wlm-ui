@@ -3,6 +3,9 @@ import { useState } from "react";
 const InitPage = () => {
     const [username, setUsername] = useState<string>('')
     const [password, setPassword] = useState<string>('')
+
+    const onClickSignin = async () => {};
+
     return (
         <div>
             <input
@@ -17,6 +20,11 @@ const InitPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
+            <button
+                onClick={onClickSignin}
+            >
+                Sign in
+            </button>
         </div>
     );
 };
