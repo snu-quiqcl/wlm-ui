@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 import { AppDispatch } from '../store';
@@ -9,14 +10,17 @@ const InitPage = () => {
     const [password, setPassword] = useState<string>('');
 
     const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
 
     const onClickSignin = async () => {
         if (username !== '' && password !== '') {
             const data = { username: username, password: password };
             dispatch(signin(data))
                 .unwrap()
-                .then(() => {})
-                .catch(() => {})
+                .then(() => {
+                    navigate('/');
+                })
+                .catch(() => {});
         }
     };
 
