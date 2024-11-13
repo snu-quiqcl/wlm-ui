@@ -1,7 +1,8 @@
 {
   "name": "wlm-ui",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "proxy": "http://127.0.0.1:8000",
   "dependencies": {
     "@reduxjs/toolkit": "^2.3.0",
     "@testing-library/jest-dom": "^5.14.1",
