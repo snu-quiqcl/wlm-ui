@@ -9,3 +9,7 @@ export interface UserType {
     password: string,
     team: TeamType;
 };
+
+export interface UserInfo {
+    user: UserType | null;
+};
