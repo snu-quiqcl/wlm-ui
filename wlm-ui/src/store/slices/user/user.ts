@@ -1,4 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 export interface TeamType {
     id: number;
@@ -17,6 +18,14 @@ export interface UserInfo {
 };
 
 const initialState: UserInfo = { user: null };
+
+export const signin = createAsyncThunk(
+    'user/signin',
+    async (user: Pick<UserType, 'username' | 'password'>) => {
+        const response = await axios.post('/user/signin/', user);
+        return response.data;
+    }
+);
 
 export const userSlice = createSlice({
     name: 'user',
