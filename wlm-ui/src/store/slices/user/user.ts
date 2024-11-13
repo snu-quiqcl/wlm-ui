@@ -22,7 +22,9 @@ export interface UserInfo {
     user: UserType | null;
 };
 
-const initialState: UserInfo = { user: null };
+const initialState: UserInfo = {
+    user: JSON.parse(localStorage.getItem('user.user') || 'null'),
+};
 
 export const signin = createAsyncThunk(
     'user/signin',
@@ -40,6 +42,7 @@ export const userSlice = createSlice({
         builder
             .addCase(signin.fulfilled, (state, action) => {
                 state.user = action.payload.user;
+                localStorage.setItem('user.user', JSON.stringify(state.user));
             })
     }
 });
