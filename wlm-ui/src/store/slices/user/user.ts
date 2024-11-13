@@ -13,3 +13,5 @@ export interface UserType {
 export interface UserInfo {
     user: UserType | null;
 };
+
+const initialState: UserInfo = { user: null };
