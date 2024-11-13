@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { RootState } from '../..';
+
 export interface TeamType {
     id: number;
     name: string;
@@ -38,3 +40,8 @@ export const userSlice = createSlice({
             })
     }
 });
+
+export const userActions = userSlice.actions;
+export const selectUser = (state: RootState) => state.user;
+
+export default userSlice.reducer;
