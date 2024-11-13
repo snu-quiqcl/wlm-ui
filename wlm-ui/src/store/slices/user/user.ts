@@ -1,3 +1,5 @@
+import { createSlice } from '@reduxjs/toolkit';
+
 export interface TeamType {
     id: number;
     name: string;
@@ -15,3 +17,9 @@ export interface UserInfo {
 };
 
 const initialState: UserInfo = { user: null };
+
+export const userSlice = createSlice({
+    name: 'user',
+    initialState,
+    reducers: {},
+});
