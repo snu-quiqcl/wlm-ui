@@ -31,7 +31,7 @@ export const signin = createAsyncThunk(
     async (user: Pick<UserType, 'username' | 'password'>) => {
         const response = await axios.post('/user/signin/', user);
         return response.data;
-    }
+    },
 );
 
 export const userSlice = createSlice({
@@ -44,7 +44,7 @@ export const userSlice = createSlice({
                 state.user = action.payload.user;
                 localStorage.setItem('user.user', JSON.stringify(state.user));
             })
-    }
+    },
 });
 
 export const userActions = userSlice.actions;
