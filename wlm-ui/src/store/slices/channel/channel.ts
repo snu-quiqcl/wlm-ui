@@ -23,3 +23,5 @@ export const channelListSlice = createSlice({
     initialState,
     reducers: {},
 })
+
+export default channelListSlice.reducer;
