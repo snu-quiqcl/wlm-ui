@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { RootState } from "../..";
 
 export interface ChannelType {
     channel: number;
