@@ -53,7 +53,7 @@ export const userSlice = createSlice({
             })
             .addCase(signout.fulfilled, (state) => {
                 state.user = null;
-                localStorage.removeItem('user.user');
+                localStorage.clear()
             })
     },
 });
