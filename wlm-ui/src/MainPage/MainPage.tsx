@@ -11,6 +11,10 @@ const MainPage = () => {
         dispatch(signout());
     };
 
+    const onClickRefreshChannelList = async () => {
+        console.log("refresh channel list");
+    }
+
     return (
         <div>
             <button
@@ -18,6 +22,14 @@ const MainPage = () => {
             >
                 Sign out
             </button>
+            <div>
+                <h1>Channel list</h1>
+                <button
+                    onClick={onClickRefreshChannelList}
+                >
+                    Refresh
+                </button>
+            </div>
         </div>
     );
 };
