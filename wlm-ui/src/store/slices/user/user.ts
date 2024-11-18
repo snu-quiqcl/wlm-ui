@@ -34,6 +34,13 @@ export const signin = createAsyncThunk(
     },
 );
 
+export const signout = createAsyncThunk(
+    'user/signout',
+    async () => {
+        await axios.post('/user/signout/');
+    },
+);
+
 export const userSlice = createSlice({
     name: 'user',
     initialState,
@@ -43,6 +50,10 @@ export const userSlice = createSlice({
             .addCase(signin.fulfilled, (state, action) => {
                 state.user = action.payload.user;
                 localStorage.setItem('user.user', JSON.stringify(state.user));
+            })
+            .addCase(signout.fulfilled, (state) => {
+                state.user = null;
+                localStorage.clear()
             })
     },
 });
