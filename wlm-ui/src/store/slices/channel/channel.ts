@@ -24,4 +24,6 @@ export const channelListSlice = createSlice({
     reducers: {},
 })
 
+export const selectChannelList = (state: RootState) => state.channelList;
+
 export default channelListSlice.reducer;
