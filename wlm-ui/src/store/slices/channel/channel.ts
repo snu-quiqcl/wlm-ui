@@ -33,6 +33,23 @@ export const channelListSlice = createSlice({
     name: 'channelList',
     initialState,
     reducers: {},
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetch.fulfilled, (state, action) => {
+                const channels = action.payload.map((ch) => ch.channel);
+                const duplicates = state.channels
+                    .filter((info) => channels.includes(info.channel.channel));
+                const newInfos = action.payload
+                    .filter(
+                        (ch) => !duplicates.map(
+                            (info) => info.channel.channel
+                        ).includes(ch.channel)
+                    ).map((ch) => <ChannelInfo>({ channel: ch, inUse: false }));
+                state.channels = duplicates.concat(newInfos).sort(
+                    (a, b) => a.channel.channel - b.channel.channel
+                )
+            })
+    },
 })
 
 export const selectChannelList = (state: RootState) => state.channelList;
