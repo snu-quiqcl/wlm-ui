@@ -10,7 +10,7 @@ export interface ChannelType {
 
 export interface ChannelInfo {
     channel: ChannelType;
-    inUse: Boolean;
+    inUse: boolean;
 };
 
 export interface ChannelListInfo {
