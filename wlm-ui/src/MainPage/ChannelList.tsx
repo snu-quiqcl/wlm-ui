@@ -1,10 +1,13 @@
-import { useSelector } from "react-redux"
-import { selectChannelList } from "../store/slices/channel/channel"
+import { useDispatch, useSelector } from "react-redux"
+import { channelListActions, selectChannelList } from "../store/slices/channel/channel"
 
 export default function ChannelListTable() {
     const channelListState = useSelector(selectChannelList);
-    const onClickUse = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-        console.log(`channel use clicked: ${event}`)
+    const dispatch = useDispatch();
+    const onClickUse = (channel: number) => {
+        return (_event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+            dispatch(channelListActions.toggleUse({ channel: channel }));
+        }
     };
     return (
         <table>
@@ -13,14 +16,15 @@ export default function ChannelListTable() {
                 <th>Channel</th>
                 <th>Name</th>
             </tr></thead>
-            <tbody>{channelListState.channels.map((channel) => {
+            <tbody>{channelListState.channels.map((chinfo) => {
+                const channel = chinfo.channel.channel;
                 return (
-                    <tr key={channel.channel.channel}>
-                        <td><button onClick={onClickUse}>
-                            {channel.inUse ? 'O' : 'X'}
+                    <tr key={channel}>
+                        <td><button onClick={onClickUse(channel)}>
+                            {chinfo.inUse ? 'O' : 'X'}
                         </button></td>
-                        <td>{channel.channel.channel}</td>
-                        <td>{channel.channel.name}</td>
+                        <td>{channel}</td>
+                        <td>{chinfo.channel.name}</td>
                     </tr>
                 )
             })}</tbody>
