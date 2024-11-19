@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { channelListActions, selectChannelList } from '../store/slices/channel/channel';
 
-export default function ChannelListTable() {
+const ChannelListTable = () => {
     const channelListState = useSelector(selectChannelList);
     useEffect(() => {
         localStorage.setItem('channel.channelList', JSON.stringify(channelListState.channels));
@@ -39,3 +39,5 @@ export default function ChannelListTable() {
         </table>
     );
 };
+
+export default ChannelListTable;
