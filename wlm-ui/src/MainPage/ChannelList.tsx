@@ -1,8 +1,12 @@
 import { useDispatch, useSelector } from "react-redux"
 import { channelListActions, selectChannelList } from "../store/slices/channel/channel"
+import { useEffect } from "react";
 
 export default function ChannelListTable() {
     const channelListState = useSelector(selectChannelList);
+    useEffect(() => {
+        localStorage.setItem('channel.channelList', JSON.stringify(channelListState.channels));
+    }, [channelListState]);
 
     const dispatch = useDispatch();
 
