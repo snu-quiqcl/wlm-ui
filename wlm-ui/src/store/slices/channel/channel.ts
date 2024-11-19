@@ -11,11 +11,11 @@ export interface ChannelType {
 export interface ChannelInfo {
     channel: ChannelType;
     inUse: Boolean;
-}
+};
 
 export interface ChannelListInfo {
     channels: ChannelInfo[];
-}
+};
 
 const initialState: ChannelListInfo = {
     channels: JSON.parse(localStorage.getItem('channel.channelList') ?? '[]'),
@@ -26,8 +26,8 @@ export const fetch = createAsyncThunk(
     async () => {
         const response = await axios.get<ChannelType[]>('/channel/');
         return response.data;
-    }
-)
+    },
+);
 
 export const channelListSlice = createSlice({
     name: 'channelList',
@@ -59,7 +59,7 @@ export const channelListSlice = createSlice({
                 )
             })
     },
-})
+});
 
 export const channelListActions = channelListSlice.actions;
 export const selectChannelList = (state: RootState) => state.channelList;
