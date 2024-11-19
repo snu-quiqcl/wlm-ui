@@ -56,7 +56,7 @@ export const channelListSlice = createSlice({
                     ).map((ch) => <ChannelInfo>({ channel: ch, inUse: false }));
                 state.channels = duplicates.concat(newInfos).sort(
                     (a, b) => a.channel.channel - b.channel.channel
-                )
+                );
             })
     },
 });
