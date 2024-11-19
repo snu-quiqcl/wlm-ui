@@ -15,7 +15,7 @@ export default function ChannelListTable() {
     const onClickUse = (channel: number) => {
         return () => {
             dispatch(channelListActions.toggleUse({ channel: channel }));
-        }
+        };
     };
 
     return (
@@ -35,8 +35,8 @@ export default function ChannelListTable() {
                         <td>{channel}</td>
                         <td>{chinfo.channel.name}</td>
                     </tr>
-                )
+                );
             })}</tbody>
         </table>
-    )
+    );
 };
