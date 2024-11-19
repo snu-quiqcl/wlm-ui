@@ -11,7 +11,7 @@ export default function ChannelListTable() {
     const dispatch = useDispatch();
 
     const onClickUse = (channel: number) => {
-        return (_event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        return () => {
             dispatch(channelListActions.toggleUse({ channel: channel }));
         }
     };
