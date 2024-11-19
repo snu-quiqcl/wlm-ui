@@ -3,12 +3,15 @@ import { channelListActions, selectChannelList } from "../store/slices/channel/c
 
 export default function ChannelListTable() {
     const channelListState = useSelector(selectChannelList);
+
     const dispatch = useDispatch();
+
     const onClickUse = (channel: number) => {
         return (_event: React.MouseEvent<HTMLElement, MouseEvent>) => {
             dispatch(channelListActions.toggleUse({ channel: channel }));
         }
     };
+
     return (
         <table>
             <thead><tr>
