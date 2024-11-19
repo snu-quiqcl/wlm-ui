@@ -16,9 +16,9 @@ export default function ChannelListTable() {
             <tbody>{channelListState.channels.map((channel) => {
                 return (
                     <tr key={channel.channel.channel}>
-                        <td><button
-                            onClick={onClickUse}
-                        >{channel.inUse ? 'O' : 'X'}</button></td>
+                        <td><button onClick={onClickUse}>
+                            {channel.inUse ? 'O' : 'X'}
+                        </button></td>
                         <td>{channel.channel.channel}</td>
                         <td>{channel.channel.name}</td>
                     </tr>
