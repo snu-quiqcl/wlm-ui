@@ -1,8 +1,8 @@
 import React from 'react';
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux";
 
-import { channelListActions, selectChannelList } from "../store/slices/channel/channel"
+import { channelListActions, selectChannelList } from "../store/slices/channel/channel";
 
 export default function ChannelListTable() {
     const channelListState = useSelector(selectChannelList);
