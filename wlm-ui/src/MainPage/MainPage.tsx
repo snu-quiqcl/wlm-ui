@@ -15,7 +15,7 @@ const MainPage = () => {
 
     const onClickRefreshChannelList = async () => {
         dispatch(fetch());
-    }
+    };
 
     return (
         <div>
