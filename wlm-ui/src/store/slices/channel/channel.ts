@@ -21,7 +21,7 @@ const initialState: ChannelListInfo = {
     channels: JSON.parse(localStorage.getItem('channel.channelList') ?? '[]'),
 };
 
-export const fetch = createAsyncThunk(
+export const fetchList = createAsyncThunk(
     'channel/fetch',
     async () => {
         const response = await axios.get<ChannelType[]>('/channel/');
@@ -44,7 +44,7 @@ export const channelListSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(fetch.fulfilled, (state, action) => {
+            .addCase(fetchList.fulfilled, (state, action) => {
                 const channels = action.payload.map((ch) => ch.channel);
                 const duplicates = state.channels
                     .filter((info) => channels.includes(info.channel.channel));
