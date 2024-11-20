@@ -11,10 +11,8 @@ const ChannelListTable = () => {
 
     const dispatch = useDispatch();
 
-    const onClickUse = (channel: number) => {
-        return () => {
-            dispatch(channelListActions.toggleUse({ channel: channel }));
-        };
+    const onClickUse = (channel: number) =>  () => {
+        dispatch(channelListActions.toggleUse({ channel: channel }));
     };
 
     return (
