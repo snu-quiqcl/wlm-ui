@@ -45,18 +45,15 @@ export const channelListSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(fetchList.fulfilled, (state, action) => {
-                const channels = action.payload.map((ch) => ch.channel);
-                const duplicates = state.channels
-                    .filter((info) => channels.includes(info.channel.channel));
-                const newInfos = action.payload
-                    .filter(
-                        (ch) => !duplicates.map(
-                            (info) => info.channel.channel
-                        ).includes(ch.channel)
-                    ).map((ch) => <ChannelInfo>({ channel: ch, inUse: false }));
-                state.channels = duplicates.concat(newInfos).sort(
-                    (a, b) => a.channel.channel - b.channel.channel
-                );
+                state.channels = action.payload.map((ch) => {
+                    const originalInfo = state.channels.find(
+                        (info) => info.channel.channel === ch.channel
+                    );
+                    return <ChannelInfo>({
+                        channel: ch,
+                        inUse: (originalInfo ? originalInfo.inUse : false),
+                    });
+                }).sort((a, b) => a.channel.channel - b.channel.channel);
             })
     },
 });
