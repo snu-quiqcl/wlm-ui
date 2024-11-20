@@ -19,18 +19,10 @@ const MainPage = () => {
 
     return (
         <div>
-            <button
-                onClick={onClickSignout}
-            >
-                Sign out
-            </button>
+            <button onClick={onClickSignout}>Sign out</button>
             <div>
                 <h1>Channel list</h1>
-                <button
-                    onClick={onClickRefreshChannelList}
-                >
-                    Refresh
-                </button>
+                <button onClick={onClickRefreshChannelList}>Refresh</button>
                 <ChannelListTable />
             </div>
         </div>
