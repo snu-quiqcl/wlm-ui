@@ -34,11 +34,11 @@ export const channelListSlice = createSlice({
     initialState,
     reducers: {
         toggleUse: (state, action: PayloadAction<{ channel: number }>) => {
-            const info = state.channels.find(
-                (chinfo) => chinfo.channel.channel === action.payload.channel
+            const targetInfo = state.channels.find(
+                (info) => info.channel.channel === action.payload.channel
             );
-            if (info) {
-                info.inUse = !info.inUse;
+            if (targetInfo) {
+                targetInfo.inUse = !targetInfo.inUse;
             }
         },
     },
