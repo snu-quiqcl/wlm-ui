@@ -1,0 +1,8 @@
+.channel-list {
+    display: flex;
+}
+
+.channel-panel {
+    padding: 10px;
+    margin: 10px;
+}
