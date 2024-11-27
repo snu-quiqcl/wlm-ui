@@ -29,6 +29,20 @@ const ChannelListTable = () => {
                                 {chinfo.inUse ? 'In use' : 'Use'}
                             </button>
                         </div>
+                        <table><tbody>
+                            <tr>
+                                <th>Exp. time</th>
+                                <td><input type='number' min='0' step='1' style={{textAlign: 'right'}} required /></td>
+                                <td align='left'>ms</td>
+                                <td><input type='submit' value='Set' /></td>
+                            </tr>
+                            <tr>
+                                <th>Period</th>
+                                <td><input type='number' min='0' step='0.1' style={{textAlign: 'right'}} required /></td>
+                                <td align='left'>s</td>
+                                <td><input type='submit' value='Set' /></td>
+                            </tr>
+                        </tbody></table>
                     </article>
                 );
             })}
