@@ -5,6 +5,7 @@ import { channelListActions, selectChannelList } from '../../store/slices/channe
 
 const ChannelList = () => {
     const channelListState = useSelector(selectChannelList);
+
     useEffect(() => {
         localStorage.setItem('channel.channelList', JSON.stringify(channelListState.channels));
     }, [channelListState]);
