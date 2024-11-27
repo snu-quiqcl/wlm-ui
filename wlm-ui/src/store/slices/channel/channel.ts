@@ -38,6 +38,13 @@ export const postExposure = createAsyncThunk(
     },
 );
 
+export const postPeriod = createAsyncThunk(
+    'channel/postPeriod',
+    async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'period'>) => {
+        await axios.post(`/setting/${payload.channel}/`, { 'period': payload.period });
+    },
+);
+
 export const channelListSlice = createSlice({
     name: 'channelList',
     initialState,
