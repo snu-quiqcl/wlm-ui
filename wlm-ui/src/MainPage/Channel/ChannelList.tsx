@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { channelListActions, selectChannelList } from '../../store/slices/channel/channel';
+import './ChannelList.scss';
 
 const ChannelList = () => {
     const channelListState = useSelector(selectChannelList);
@@ -17,25 +18,7 @@ const ChannelList = () => {
     };
 
     return (
-        <table>
-            <thead><tr>
-                <th>Use</th>
-                <th>Channel</th>
-                <th>Name</th>
-            </tr></thead>
-            <tbody>{channelListState.channels.map((chinfo) => {
-                const channel = chinfo.channel.channel;
-                return (
-                    <tr key={channel}>
-                        <td><button onClick={onClickUse(channel)}>
-                            {chinfo.inUse ? 'O' : 'X'}
-                        </button></td>
-                        <td>{channel}</td>
-                        <td>{chinfo.channel.name}</td>
-                    </tr>
-                );
-            })}</tbody>
-        </table>
+        <section className='container'></section>
     );
 };
 
