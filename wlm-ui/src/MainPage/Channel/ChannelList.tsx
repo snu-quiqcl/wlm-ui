@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { channelListActions, selectChannelList } from '../../store/slices/channel/channel';
+import Channel from './Channel';
 import './ChannelList.scss';
 
 const ChannelList = () => {
@@ -20,7 +21,9 @@ const ChannelList = () => {
     return (
         <section className='container'>
             {channelListState.channels.map((info) => (
-                <article className='item'></article>
+                <article className='item'>
+                    <Channel key={info.channel.channel} info={info} />
+                </article>
             ))}
         </section>
     );
