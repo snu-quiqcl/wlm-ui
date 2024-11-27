@@ -19,9 +19,9 @@ const ChannelList = () => {
     };
 
     return (
-        <section className='container'>
+        <section className='channel-container'>
             {channelListState.channels.map((info) => (
-                <article className='item' key={info.channel.channel}>
+                <article key={info.channel.channel}>
                     <Channel
                         {...info}
                         onClickUse={() => onClickUse(info.channel.channel)}

@@ -1,12 +1,8 @@
-.container {
+.channel-container {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: flex-start;
     flex-wrap: wrap;
-}
-
-.item {
-    width: auto;
-    height: auto;
+    gap: 20px;
 }
