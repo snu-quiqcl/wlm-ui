@@ -21,7 +21,7 @@ const ChannelListTable = () => {
             {channelListState.channels.map((chinfo) => {
                 const channel = chinfo.channel.channel;
                 return (
-                    <article className='channel-panel'>
+                    <article className='channel-panel' key={channel}>
                         <div>
                             <b>CH{channel} </b>
                             {chinfo.channel.name}
