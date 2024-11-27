@@ -16,9 +16,13 @@ const Channel = (props: IProps) => {
                 <button onClick={props.onClickUse} style={{ width: '60px' }}>{props.inUse ? 'In use' : 'Use'}</button>
             </div>
             <div className='channel-attr-container'>
-                <b>Exp. time</b>
+                <b style={{ textAlign: 'left' }}>Exp. time</b>
                 <input type='number' min={0} step={10} style={{ textAlign: 'right' }} />
                 <span>ms</span>
+                <button>Set</button>
+                <b style={{ textAlign: 'left' }}>Period</b>
+                <input type='number' min={0} step={0.1} style={{ textAlign: 'right' }} />
+                <span>s</span>
                 <button>Set</button>
             </div>
         </div>
