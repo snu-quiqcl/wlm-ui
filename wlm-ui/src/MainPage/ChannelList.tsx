@@ -24,7 +24,7 @@ const ChannelListTable = () => {
                     <article className='channel-panel' key={channel}>
                         <div>
                             <b>CH{channel} </b>
-                            {chinfo.channel.name}
+                            <span>{chinfo.channel.name} </span>
                             <button onClick={onClickUse(channel)}>
                                 {chinfo.inUse ? 'In use' : 'Use'}
                             </button>
