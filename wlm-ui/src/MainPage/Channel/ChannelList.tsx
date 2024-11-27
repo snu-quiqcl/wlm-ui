@@ -14,15 +14,18 @@ const ChannelList = () => {
 
     const dispatch = useDispatch();
 
-    const onClickUse = (channel: number) => () => {
+    const onClickUse = (channel: number) => {
         dispatch(channelListActions.toggleUse({ channel: channel }));
     };
 
     return (
         <section className='container'>
             {channelListState.channels.map((info) => (
-                <article className='item'>
-                    <Channel key={info.channel.channel} info={info} />
+                <article className='item' key={info.channel.channel}>
+                    <Channel
+                        {...info}
+                        onClickUse={() => onClickUse(info.channel.channel)}
+                    />
                 </article>
             ))}
         </section>
