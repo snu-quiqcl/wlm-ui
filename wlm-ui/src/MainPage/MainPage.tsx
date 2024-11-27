@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../store';
 import { signout } from '../store/slices/user/user';
 import { fetchList } from '../store/slices/channel/channel';
-import ChannelListTable from './ChannelList';
+import ChannelList from './Channel/ChannelList';
 
 const MainPage = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -23,7 +23,7 @@ const MainPage = () => {
             <div>
                 <h1>Channel list</h1>
                 <button onClick={onClickRefreshChannelList}>Refresh</button>
-                <ChannelListTable />
+                <ChannelList />
             </div>
         </div>
     );
