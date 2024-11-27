@@ -18,7 +18,11 @@ const ChannelList = () => {
     };
 
     return (
-        <section className='container'></section>
+        <section className='container'>
+            {channelListState.channels.map((info) => (
+                <article className='item'></article>
+            ))}
+        </section>
     );
 };
 
