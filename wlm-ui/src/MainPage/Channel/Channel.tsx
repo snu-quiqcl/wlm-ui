@@ -6,10 +6,12 @@ import './Channel.scss'
 interface IProps extends ChannelInfo {
     onClickUse: () => void;
     onClickSetExposure: (exposure: number) => void;
+    onClickSetPeriod: (period: number) => void;
 }
 
 const Channel = (props: IProps) => {
     const [exposure, setExposure] = useState<number>(0);
+    const [period, setPeriod] = useState<number>(0);
 
     return (
         <div className='channel-item'>
@@ -31,9 +33,16 @@ const Channel = (props: IProps) => {
                 <span>ms</span>
                 <button onClick={() => props.onClickSetExposure(exposure)}>Set</button>
                 <b style={{ textAlign: 'left' }}>Period</b>
-                <input type='number' min={0} step={0.1} style={{ textAlign: 'right' }} />
+                <input
+                    type='number'
+                    min={0}
+                    step={0.1}
+                    value={period}
+                    onChange={(e) => setPeriod(Number(e.target.value))}
+                    style={{ textAlign: 'right' }}
+                />
                 <span>s</span>
-                <button>Set</button>
+                <button onClick={() => props.onClickSetPeriod(period)}>Set</button>
             </div>
         </div>
     );

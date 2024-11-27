@@ -2,7 +2,9 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { AppDispatch } from '../../store';
-import { channelListActions, fetchList, postExposure, selectChannelList } from '../../store/slices/channel/channel';
+import {
+    channelListActions, fetchList, postExposure, postPeriod, selectChannelList,
+} from '../../store/slices/channel/channel';
 import Channel from './Channel';
 import './ChannelList.scss';
 
@@ -26,6 +28,10 @@ const ChannelList = () => {
     const onClickSetExposure = (channel: number, exposure: number) => {
         dispatch(postExposure({ channel: channel, exposure: exposure }));
     };
+    
+    const onClickSetPeriod = (channel: number, period: number) => {
+        dispatch(postPeriod({ channel: channel, period: period }));
+    };
 
     return (
         <div>
@@ -38,6 +44,8 @@ const ChannelList = () => {
                             onClickUse={() => onClickUse(info.channel.channel)}
                             onClickSetExposure={(exposure: number) =>
                                 onClickSetExposure(info.channel.channel, exposure)}
+                            onClickSetPeriod={(period: number) =>
+                                onClickSetPeriod(info.channel.channel, period)}
                         />
                     </article>
                 ))}
