@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { AppDispatch } from '../../store';
-import { channelListActions, fetchList, selectChannelList } from '../../store/slices/channel/channel';
+import { channelListActions, fetchList, postExposure, selectChannelList } from '../../store/slices/channel/channel';
 import Channel from './Channel';
 import './ChannelList.scss';
 
@@ -23,6 +23,10 @@ const ChannelList = () => {
         dispatch(channelListActions.toggleUse({ channel: channel }));
     };
 
+    const onClickSetExposure = (channel: number, exposure: number) => {
+        dispatch(postExposure({ channel: channel, exposure: exposure }));
+    };
+
     return (
         <div>
             <button onClick={onClickRefreshChannelList}>Refresh</button>
@@ -32,6 +36,8 @@ const ChannelList = () => {
                         <Channel
                             {...info}
                             onClickUse={() => onClickUse(info.channel.channel)}
+                            onClickSetExposure={(exposure: number) =>
+                                onClickSetExposure(info.channel.channel, exposure)}
                         />
                     </article>
                 ))}
