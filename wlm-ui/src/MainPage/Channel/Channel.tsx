@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { ChannelInfo } from '../../store/slices/channel/channel';
 import './Channel.scss';
@@ -10,8 +10,13 @@ interface IProps extends ChannelInfo {
 };
 
 const Channel = (props: IProps) => {
+    const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
+
+    useEffect(() => {
+        setIsInUseButtonEnabled(true);
+    }, [props.inUse]);
 
     return (
         <div className='channel-item'>
@@ -19,13 +24,17 @@ const Channel = (props: IProps) => {
                 <b>CH {props.channel.channel}</b>
                 <span>{props.channel.name}</span>
                 <button
-                    onClick={() => props.onClickSetInUse(props.inUse)}
+                    disabled={!isInUseButtonEnabled}
+                    onClick={() => {
+                        setIsInUseButtonEnabled(false);
+                        props.onClickSetInUse(props.inUse);
+                    }}
                     style={{ width: '60px' }}
                 >
                     {props.inUse ? 'In use' : 'Use'}
                 </button>
             </div>
-            <div className='channel-attr-editor-container'>
+            <div className={'channel-attr-editor-container'}>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>
                 <input
                     type='number'
