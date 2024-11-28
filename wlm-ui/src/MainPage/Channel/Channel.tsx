@@ -20,7 +20,7 @@ const Channel = (props: IProps) => {
                 <span>{props.channel.name}</span>
                 <button onClick={props.onClickUse} style={{ width: '60px' }}>{props.inUse ? 'In use' : 'Use'}</button>
             </div>
-            <div className='channel-attr-container'>
+            <div className='channel-attr-editor-container'>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>
                 <input
                     type='number'
