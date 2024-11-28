@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 import { RootState } from '../..';
@@ -61,16 +61,7 @@ export const postPeriod = createAsyncThunk(
 export const channelListSlice = createSlice({
     name: 'channelList',
     initialState,
-    reducers: {
-        toggleUse: (state, action: PayloadAction<{ channel: number }>) => {
-            const targetInfo = state.channels.find(
-                (info) => info.channel.channel === action.payload.channel
-            );
-            if (targetInfo) {
-                targetInfo.inUse = !targetInfo.inUse;
-            }
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder
             .addCase(fetchList.fulfilled, (state, action) => {
@@ -85,6 +76,15 @@ export const channelListSlice = createSlice({
                         period: originalInfo?.period ?? 0,
                     } as ChannelInfo;
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
+            })
+            .addCase(postInUse.fulfilled, (state, action) => {
+                const targetInfo = state.channels.find(
+                    info => info.channel.channel === action.payload.channel
+                );
+                if (!targetInfo) {
+                    throw new Error('Channel not found');
+                }
+                targetInfo.inUse = action.payload.inUse;
             })
     },
 });
