@@ -23,10 +23,14 @@ const initialState: ChannelListInfo = {
     channels: JSON.parse(localStorage.getItem('channel.channelList') ?? '[]'),
 };
 
+interface ChannelFetchType extends ChannelType {
+    in_use: boolean;
+};
+
 export const fetchList = createAsyncThunk(
     'channel/fetch',
     async () => {
-        const response = await axios.get<ChannelType[]>('/channel/');
+        const response = await axios.get<ChannelFetchType[]>('/channel/');
         return response.data;
     },
 );
@@ -63,12 +67,14 @@ export const channelListSlice = createSlice({
             .addCase(fetchList.fulfilled, (state, action) => {
                 state.channels = action.payload.map((ch) => {
                     const originalInfo = state.channels.find(
-                        (info) => info.channel.channel === ch.channel
+                        info => info.channel.channel === ch.channel
                     );
                     return <ChannelInfo>({
-                        channel: ch,
-                        inUse: (originalInfo ? originalInfo.inUse : false),
-                    });
+                        channel: <ChannelType>{ channel: ch.channel, name: ch.name },
+                        inUse: ch.in_use,
+                        exposure: originalInfo?.exposure ?? 0,
+                        period: originalInfo?.period ?? 0,
+                    })
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
             })
     },
