@@ -81,7 +81,7 @@ export const channelListSlice = createSlice({
                 const targetInfo = state.channels.find(
                     info => info.channel.channel === action.payload.channel
                 );
-                if (!targetInfo) {
+                if (targetInfo === undefined) {
                     throw new Error('Channel not found');
                 }
                 targetInfo.inUse = action.payload.inUse;
