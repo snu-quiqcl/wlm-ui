@@ -40,21 +40,21 @@ export const postInUse = createAsyncThunk(
     async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'inUse'>) => {
         const newInUse = !payload.inUse;
         await axios.post(`/operation/${payload.channel}/`, { 'on': newInUse });
-        return { 'channel': payload.channel, 'inUse': newInUse };
+        return { channel: payload.channel, inUse: newInUse };
     },
 );
 
 export const postExposure = createAsyncThunk(
     'channel/postExposure',
     async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'exposure'>) => {
-        await axios.post(`/setting/${payload.channel}/`, { 'exposure': payload.exposure });
+        await axios.post(`/setting/${payload.channel}/`, { exposure: payload.exposure });
     },
 );
 
 export const postPeriod = createAsyncThunk(
     'channel/postPeriod',
     async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'period'>) => {
-        await axios.post(`/setting/${payload.channel}/`, { 'period': payload.period });
+        await axios.post(`/setting/${payload.channel}/`, { period: payload.period });
     },
 );
 
