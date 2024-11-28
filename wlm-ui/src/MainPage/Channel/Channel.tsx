@@ -4,7 +4,7 @@ import { ChannelInfo } from '../../store/slices/channel/channel';
 import './Channel.scss';
 
 interface IProps extends ChannelInfo {
-    onClickUse: () => void;
+    onClickSetInUse: (inUse: boolean) => void;
     onClickSetExposure: (exposure: number) => void;
     onClickSetPeriod: (period: number) => void;
 };
@@ -18,7 +18,12 @@ const Channel = (props: IProps) => {
             <div className='channel-title'>
                 <b>CH {props.channel.channel}</b>
                 <span>{props.channel.name}</span>
-                <button onClick={props.onClickUse} style={{ width: '60px' }}>{props.inUse ? 'In use' : 'Use'}</button>
+                <button
+                    onClick={() => props.onClickSetInUse(props.inUse)}
+                    style={{ width: '60px' }}
+                >
+                    {props.inUse ? 'In use' : 'Use'}
+                </button>
             </div>
             <div className='channel-attr-editor-container'>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>

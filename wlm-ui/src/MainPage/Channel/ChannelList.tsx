@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { AppDispatch } from '../../store';
 import {
-    channelListActions, fetchList, postExposure, postPeriod, selectChannelList,
+    fetchList, postInUse, postExposure, postPeriod, selectChannelList,
 } from '../../store/slices/channel/channel';
 import Channel from './Channel';
 import './ChannelList.scss';
@@ -21,8 +21,8 @@ const ChannelList = () => {
         dispatch(fetchList());
     };
 
-    const onClickUse = (channel: number) => {
-        dispatch(channelListActions.toggleUse({ channel: channel }));
+    const onClickSetInUse = (channel: number, inUse: boolean) => {
+        dispatch(postInUse({ channel: channel, inUse: inUse }));
     };
 
     const onClickSetExposure = (channel: number, exposure: number) => {
@@ -41,7 +41,8 @@ const ChannelList = () => {
                     <article key={info.channel.channel}>
                         <Channel
                             {...info}
-                            onClickUse={() => onClickUse(info.channel.channel)}
+                            onClickSetInUse={(inUse: boolean) =>
+                                onClickSetInUse(info.channel.channel, inUse)}
                             onClickSetExposure={(exposure: number) =>
                                 onClickSetExposure(info.channel.channel, exposure)}
                             onClickSetPeriod={(period: number) =>
