@@ -69,12 +69,12 @@ export const channelListSlice = createSlice({
                     const originalInfo = state.channels.find(
                         info => info.channel.channel === ch.channel
                     );
-                    return <ChannelInfo>({
-                        channel: <ChannelType>{ channel: ch.channel, name: ch.name },
+                    return {
+                        channel: { channel: ch.channel, name: ch.name } as ChannelType,
                         inUse: ch.in_use,
                         exposure: originalInfo?.exposure ?? 0,
                         period: originalInfo?.period ?? 0,
-                    })
+                    } as ChannelInfo;
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
             })
     },
