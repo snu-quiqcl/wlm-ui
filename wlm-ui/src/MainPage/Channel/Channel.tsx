@@ -30,7 +30,7 @@ const Channel = (props: IProps) => {
                     onChange={(e) => setExposure(Number(e.target.value) / 1e3)}
                     style={{ textAlign: 'right' }}
                 />
-                <span>ms</span>
+                <span style={{ textAlign: 'left' }}>ms</span>
                 <button onClick={() => props.onClickSetExposure(exposure)}>Set</button>
                 <b style={{ textAlign: 'left' }}>Period</b>
                 <input
@@ -41,7 +41,7 @@ const Channel = (props: IProps) => {
                     onChange={(e) => setPeriod(Number(e.target.value))}
                     style={{ textAlign: 'right' }}
                 />
-                <span>s</span>
+                <span style={{ textAlign: 'left' }}>s</span>
                 <button onClick={() => props.onClickSetPeriod(period)}>Set</button>
             </div>
         </div>
