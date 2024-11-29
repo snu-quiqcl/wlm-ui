@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 import { RootState } from '../..';
@@ -8,11 +8,15 @@ export interface ChannelType {
     name: string;
 };
 
+export interface SettingType {
+    exposure: number;
+    period: number;
+};
+
 export interface ChannelInfo {
     channel: ChannelType;
     inUse: boolean;
-    exposure: number;
-    period: number;
+    setting: SettingType;
 };
 
 export interface ChannelListInfo {
@@ -43,14 +47,14 @@ export const postInUse = createAsyncThunk(
 
 export const postExposure = createAsyncThunk(
     'channel/postExposure',
-    async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'exposure'>) => {
+    async (payload: Pick<ChannelType, 'channel'> & Pick<SettingType, 'exposure'>) => {
         await axios.post(`/setting/${payload.channel}/`, { exposure: payload.exposure });
     },
 );
 
 export const postPeriod = createAsyncThunk(
     'channel/postPeriod',
-    async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'period'>) => {
+    async (payload: Pick<ChannelType, 'channel'> & Pick<SettingType, 'period'>) => {
         await axios.post(`/setting/${payload.channel}/`, { period: payload.period });
     },
 );
@@ -58,7 +62,13 @@ export const postPeriod = createAsyncThunk(
 export const channelListSlice = createSlice({
     name: 'channelList',
     initialState,
-    reducers: {},
+    reducers: {
+        fetchSetting: (
+            state, action: PayloadAction<Pick<ChannelType, 'channel'> & Partial<SettingType>>
+        ) => {
+            
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchList.fulfilled, (state, action) => {
@@ -67,10 +77,9 @@ export const channelListSlice = createSlice({
                         info => info.channel.channel === ch.channel
                     );
                     return {
-                        channel: { channel: ch.channel, name: ch.name } as ChannelType,
+                        channel: { channel: ch.channel, name: ch.name },
                         inUse: ch.inUse,
-                        exposure: originalInfo?.exposure ?? 0,
-                        period: originalInfo?.period ?? 0,
+                        setting: originalInfo?.setting ?? { exposure: 0, period: 0 },
                     } as ChannelInfo;
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
             })
