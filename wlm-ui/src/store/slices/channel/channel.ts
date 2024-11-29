@@ -23,14 +23,10 @@ const initialState: ChannelListInfo = {
     channels: JSON.parse(localStorage.getItem('channel.channelList') ?? '[]'),
 };
 
-interface ChannelFetchType extends ChannelType {
-    in_use: boolean;
-};
-
 export const fetchList = createAsyncThunk(
     'channel/fetch',
     async () => {
-        const response = await axios.get<ChannelFetchType[]>('/channel/');
+        const response = await axios.get<(ChannelType & Pick<ChannelInfo, 'inUse'>)[]>('/channel/');
         return response.data;
     },
 );
@@ -72,7 +68,7 @@ export const channelListSlice = createSlice({
                     );
                     return {
                         channel: { channel: ch.channel, name: ch.name } as ChannelType,
-                        inUse: ch.in_use,
+                        inUse: ch.inUse,
                         exposure: originalInfo?.exposure ?? 0,
                         period: originalInfo?.period ?? 0,
                     } as ChannelInfo;
