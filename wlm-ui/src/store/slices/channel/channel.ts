@@ -38,9 +38,10 @@ export const fetchList = createAsyncThunk(
 export const postInUse = createAsyncThunk(
     'channel/postInUse',
     async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'inUse'>) => {
-        const newInUse = !payload.inUse;
-        await axios.post(`/operation/${payload.channel}/`, { 'on': newInUse });
-        return { channel: payload.channel, inUse: newInUse };
+        const { channel, inUse } = payload;
+        const newInUse = !inUse;
+        await axios.post(`/operation/${channel}/`, { 'on': newInUse });
+        return { channel: channel, inUse: newInUse };
     },
 );
 
