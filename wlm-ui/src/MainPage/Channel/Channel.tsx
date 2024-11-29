@@ -50,6 +50,16 @@ const Channel = (props: IProps) => {
                     {props.inUse ? 'In use' : 'Use'}
                 </button>
             </div>
+            <div className='channel-attr-viewer-container'>
+                <b>Exp. time</b>
+                <span style={{ width: '60px', textAlign: 'right' }}>
+                    {props.setting.exposure * 1e3} ms
+                </span>
+                <b>Period</b>
+                <span style={{ width: '60px', textAlign: 'right' }}>
+                    {props.setting.period} s
+                </span>
+            </div>
             <div className={'channel-attr-editor-container'}>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>
                 <input
