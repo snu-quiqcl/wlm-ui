@@ -66,7 +66,19 @@ export const channelListSlice = createSlice({
         fetchSetting: (
             state, action: PayloadAction<Pick<ChannelType, 'channel'> & Partial<SettingType>>
         ) => {
-            
+            const { channel, exposure, period } = action.payload;
+            const targetInfo = state.channels.find(
+                info => info.channel.channel === channel
+            );
+            if (targetInfo === undefined) {
+                throw new Error('Channel not found');
+            }
+            if (exposure !== undefined) {
+                targetInfo.setting.exposure = exposure;
+            }
+            if (period !== undefined) {
+                targetInfo.setting.period = period;
+            }
         },
     },
     extraReducers: (builder) => {
