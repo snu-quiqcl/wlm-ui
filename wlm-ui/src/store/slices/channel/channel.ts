@@ -94,6 +94,14 @@ export const channelListSlice = createSlice({
                 info.setting.period = period;
             }
         },
+        fetchMeasurement: (
+            state,
+            action: PayloadAction<Pick<ChannelType, 'channel'> & { measurement: MeasurementType }>
+        ) => {
+            const { channel, measurement } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            info.measurements.push(measurement);
+        },
     },
     extraReducers: (builder) => {
         builder

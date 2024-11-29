@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { AppDispatch } from '../../store';
-import { channelListActions, SettingType, ChannelInfo } from '../../store/slices/channel/channel';
+import {
+    channelListActions, SettingType, MeasurementType, ChannelInfo
+} from '../../store/slices/channel/channel';
 import './Channel.scss';
 
 interface IProps extends ChannelInfo {
@@ -25,6 +27,20 @@ const Channel = (props: IProps) => {
             const data = JSON.parse(event.data) as Partial<SettingType>;
             dispatch(channelListActions.fetchSetting(
                 { channel: channel, ...data }));
+        };
+
+        return () => socket.close();
+    }, [dispatch, props.channel.channel]);
+
+    useEffect(() => {
+        const channel = props.channel.channel;
+        const socket = new WebSocket(
+            `${process.env.REACT_APP_WEBSOCKET_URL}/measurement/${channel}/`);
+
+        socket.onmessage = event => {
+            const data = JSON.parse(event.data) as MeasurementType;
+            dispatch(channelListActions.fetchMeasurement(
+                { channel: channel, measurement: data }));
         };
 
         return () => socket.close();
