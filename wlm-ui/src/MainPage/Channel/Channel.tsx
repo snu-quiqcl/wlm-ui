@@ -26,7 +26,9 @@ const Channel = (props: IProps) => {
             dispatch(channelListActions.fetchSetting(
                 { channel: channel, ...data }));
         };
-    }, [props.channel.channel]);
+
+        return () => socket.close();
+    }, [dispatch, props.channel.channel]);
 
     useEffect(() => {
         setIsInUseButtonEnabled(true);
