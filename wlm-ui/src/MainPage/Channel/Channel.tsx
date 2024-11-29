@@ -15,6 +15,11 @@ const Channel = (props: IProps) => {
     const [period, setPeriod] = useState<number>(0);
 
     useEffect(() => {
+        const channel = props.channel.channel;
+        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/setting/${channel}/`);
+    }, [props.channel.channel]);
+
+    useEffect(() => {
         setIsInUseButtonEnabled(true);
     }, [props.inUse]);
 
