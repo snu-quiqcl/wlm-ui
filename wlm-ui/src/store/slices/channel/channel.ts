@@ -103,7 +103,10 @@ export const channelListSlice = createSlice({
             info.measurements.push(measurement);
         },
         removeOldMeasurements: (state, action: PayloadAction<Pick<ChannelType, 'channel'>>) => {
-
+            const info = getChannelInfoWithException(state, action.payload.channel);
+            const cutoffTime = new Date(Date.now() - 10 * 60 * 1000);
+            info.measurements = info.measurements.filter(
+                measurement => new Date(measurement.measuredAt) > cutoffTime);
         },
     },
     extraReducers: (builder) => {
