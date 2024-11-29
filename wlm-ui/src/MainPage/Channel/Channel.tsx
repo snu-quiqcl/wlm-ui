@@ -47,6 +47,16 @@ const Channel = (props: IProps) => {
     }, [dispatch, props.channel.channel]);
 
     useEffect(() => {
+        const channel = props.channel.channel;
+
+        const interval = setInterval(() => {
+            dispatch(channelListActions.removeOldMeasurements({ channel: channel }));
+        }, 10 * 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, [dispatch, props.channel.channel]);
+
+    useEffect(() => {
         setIsInUseButtonEnabled(true);
     }, [props.inUse]);
 

@@ -102,6 +102,9 @@ export const channelListSlice = createSlice({
             const info = getChannelInfoWithException(state, channel);
             info.measurements.push(measurement);
         },
+        removeOldMeasurements: (state, action: PayloadAction<Pick<ChannelType, 'channel'>>) => {
+
+        },
     },
     extraReducers: (builder) => {
         builder
