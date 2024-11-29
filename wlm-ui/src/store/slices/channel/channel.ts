@@ -27,6 +27,18 @@ const initialState: ChannelListInfo = {
     channels: [],
 };
 
+const getChannelInfo = (state: ChannelListInfo, channel: number) => (
+    state.channels.find(info => info.channel.channel === channel)
+);
+
+const getChannelInfoWithException = (state: ChannelListInfo, channel: number) => {
+    const info = getChannelInfo(state, channel);
+    if (info === undefined) {
+        throw new Error('Channel not found');
+    }
+    return info;
+};
+
 export const fetchList = createAsyncThunk(
     'channel/fetch',
     async () => {
@@ -67,17 +79,12 @@ export const channelListSlice = createSlice({
             state, action: PayloadAction<Pick<ChannelType, 'channel'> & Partial<SettingType>>
         ) => {
             const { channel, exposure, period } = action.payload;
-            const targetInfo = state.channels.find(
-                info => info.channel.channel === channel
-            );
-            if (targetInfo === undefined) {
-                throw new Error('Channel not found');
-            }
+            const info = getChannelInfoWithException(state, channel);
             if (exposure !== undefined) {
-                targetInfo.setting.exposure = exposure;
+                info.setting.exposure = exposure;
             }
             if (period !== undefined) {
-                targetInfo.setting.period = period;
+                info.setting.period = period;
             }
         },
     },
@@ -85,24 +92,17 @@ export const channelListSlice = createSlice({
         builder
             .addCase(fetchList.fulfilled, (state, action) => {
                 state.channels = action.payload.map((ch) => {
-                    const originalInfo = state.channels.find(
-                        info => info.channel.channel === ch.channel
-                    );
+                    const info = getChannelInfo(state, ch.channel);
                     return {
                         channel: { channel: ch.channel, name: ch.name },
                         inUse: ch.inUse,
-                        setting: originalInfo?.setting ?? { exposure: 0, period: 0 },
+                        setting: info?.setting ?? { exposure: 0, period: 0 },
                     } as ChannelInfo;
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
             })
             .addCase(postInUse.fulfilled, (state, action) => {
-                const targetInfo = state.channels.find(
-                    info => info.channel.channel === action.payload.channel
-                );
-                if (targetInfo === undefined) {
-                    throw new Error('Channel not found');
-                }
-                targetInfo.inUse = action.payload.inUse;
+                const info = getChannelInfoWithException(state, action.payload.channel);
+                info.inUse = action.payload.inUse;
             })
     },
 });
