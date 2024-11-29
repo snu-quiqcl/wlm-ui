@@ -20,7 +20,7 @@ export interface ChannelListInfo {
 };
 
 const initialState: ChannelListInfo = {
-    channels: JSON.parse(localStorage.getItem('channel.channelList') ?? '[]'),
+    channels: [],
 };
 
 export const fetchList = createAsyncThunk(

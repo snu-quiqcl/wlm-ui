@@ -10,12 +10,11 @@ import './ChannelList.scss';
 
 const ChannelList = () => {
     const channelListState = useSelector(selectChannelList);
+    const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
-        localStorage.setItem('channel.channelList', JSON.stringify(channelListState.channels));
-    }, [channelListState]);
-
-    const dispatch = useDispatch<AppDispatch>();
+        dispatch(fetchList());
+    }, [dispatch]);
 
     const onClickRefreshChannelList = async () => {
         dispatch(fetchList());
