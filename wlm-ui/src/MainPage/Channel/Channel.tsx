@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
+import { Line } from '@nivo/line';
 
 import { AppDispatch } from '../../store';
 import {
@@ -81,6 +82,19 @@ const Channel = (props: IProps) => {
                 </button>
             </div>
             <div style={{ display: props.inUse ? 'block' : 'none' }}>
+                <Line
+                    data={[{
+                        id: `CH ${props.channel.channel}`,
+                        data: props.measurements.filter(
+                            measurement => measurement.frequency !== undefined
+                        ).map(measurement => ({
+                            x: new Date(measurement.measuredAt),
+                            y: measurement.frequency,
+                        })),
+                    }]}
+                    width={500}
+                    height={300}
+                />
                 <h1>
                     {latestMeasurement ? (
                         latestMeasurement.frequency ? (
