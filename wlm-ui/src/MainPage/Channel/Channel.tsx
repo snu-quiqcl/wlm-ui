@@ -17,6 +17,7 @@ const Channel = (props: IProps) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
+    const latestMeasurement = props.measurements.at(-1)
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
@@ -78,6 +79,19 @@ const Channel = (props: IProps) => {
                 >
                     {props.inUse ? 'In use' : 'Use'}
                 </button>
+            </div>
+            <div style={{ display: props.inUse ? 'block' : 'none' }}>
+                <h1>
+                    {latestMeasurement ? (
+                        latestMeasurement.frequency ? (
+                            `${(latestMeasurement.frequency / 1e12).toFixed(6)} THz`
+                        ) : (
+                            latestMeasurement.error
+                        )
+                    ) : (
+                        'No measurement'
+                    )}
+                </h1>
             </div>
             <div className='channel-attr-viewer-container'>
                 <b>Exp. time</b>
