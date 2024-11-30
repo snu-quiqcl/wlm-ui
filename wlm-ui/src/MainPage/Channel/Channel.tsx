@@ -53,7 +53,10 @@ const Channel = (props: IProps) => {
             dispatch(channelListActions.removeOldMeasurements({ channel: channel }));
         }, 10 * 60 * 1000);
 
-        return () => clearInterval(interval);
+        return () => {
+            clearInterval(interval);
+            dispatch(channelListActions.removeAllMeasurements({ channel: channel }));
+        };
     }, [dispatch, props.channel.channel]);
 
     useEffect(() => {
