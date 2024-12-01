@@ -18,6 +18,8 @@ const Channel = (props: IProps) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
+    const measurementsRef = useRef(props.measurements);
+    const [recentMeasurements, setRecentMeasurements] = useState<{ x: Date, y: number }[]>([]);
     const latestMeasurement = props.measurements.at(-1)
     const dispatch = useDispatch<AppDispatch>();
 
@@ -62,6 +64,26 @@ const Channel = (props: IProps) => {
     }, [dispatch, props.channel.channel]);
 
     useEffect(() => {
+        measurementsRef.current = props.measurements;
+    }, [props.measurements]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const cutoffTime = new Date(Date.now() - 30 * 1000);
+
+            setRecentMeasurements(measurementsRef.current.filter(measurement => (
+                new Date(measurement.measuredAt) > cutoffTime &&
+                measurement.frequency !== undefined
+            )).map(measurement => ({
+                x: new Date(measurement.measuredAt),
+                y: measurement.frequency!,
+            })));
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
         setIsInUseButtonEnabled(true);
     }, [props.inUse]);
 
@@ -83,15 +105,12 @@ const Channel = (props: IProps) => {
             </div>
             <div style={{ display: props.inUse ? 'block' : 'none' }}>
                 <Line
-                    data={[{
-                        id: `CH ${props.channel.channel}`,
-                        data: props.measurements.filter(
-                            measurement => measurement.frequency !== undefined
-                        ).map(measurement => ({
-                            x: new Date(measurement.measuredAt),
-                            y: measurement.frequency,
-                        })),
-                    }]}
+                    data={[
+                        {
+                            id: 'measurement',
+                            data: recentMeasurements,
+                        },
+                    ]}
                     width={500}
                     height={300}
                 />
