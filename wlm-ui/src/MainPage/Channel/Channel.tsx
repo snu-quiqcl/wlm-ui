@@ -18,6 +18,7 @@ interface IProps extends ChannelInfo {
 
 const Channel = (props: IProps) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
+    const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
     const measurementsRef = useRef(props.measurements);
@@ -72,25 +73,32 @@ const Channel = (props: IProps) => {
     }, [props.measurements]);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            const now = new Date();
-            const cutoffTime = new Date(now.getTime() - TIME_RANGE);
+        let interval: NodeJS.Timer | undefined;
 
-            setRecentMeasurements(measurementsRef.current.filter(measurement => (
-                new Date(measurement.measuredAt) > cutoffTime &&
-                measurement.frequency !== undefined
-            )).map(measurement => ({
-                x: new Date(measurement.measuredAt),
-                y: measurement.frequency!,
-            })));
+        if (shouldUpdatePlot) {
+            interval = setInterval(() => {
+                const now = new Date();
+                const cutoffTime = new Date(now.getTime() - TIME_RANGE);
 
-            setTimeWindow({ min: cutoffTime, max: now });
-        }, 100);
+                setRecentMeasurements(measurementsRef.current.filter(measurement => (
+                    new Date(measurement.measuredAt) > cutoffTime &&
+                    measurement.frequency !== undefined
+                )).map(measurement => ({
+                    x: new Date(measurement.measuredAt),
+                    y: measurement.frequency!,
+                })));
+
+                setTimeWindow({ min: cutoffTime, max: now });
+            }, 100);
+        } else {
+            clearInterval(interval);
+        }
 
         return () => clearInterval(interval);
-    }, []);
+    }, [shouldUpdatePlot]);
 
     useEffect(() => {
+        setShouldUpdatePlot(props.inUse);
         setIsInUseButtonEnabled(true);
     }, [props.inUse]);
 
@@ -111,6 +119,9 @@ const Channel = (props: IProps) => {
                 </button>
             </div>
             <div style={{ display: props.inUse ? 'block' : 'none' }}>
+                <button onClick={() => setShouldUpdatePlot(!shouldUpdatePlot)}>
+                    {shouldUpdatePlot ? 'Stop' : 'Start'}
+                </button>
                 <Line
                     data={[
                         {
