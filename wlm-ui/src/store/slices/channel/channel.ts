@@ -14,8 +14,8 @@ export interface SettingType {
 };
 
 export interface MeasurementType {
-    frequency?: number;
-    error?: string;
+    frequency: number | null;
+    error: string | null;
     measuredAt: string;
 };
 
