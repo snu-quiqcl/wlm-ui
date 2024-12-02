@@ -81,8 +81,7 @@ const Channel = (props: IProps) => {
                 const cutoffTime = new Date(now.getTime() - TIME_RANGE);
 
                 setRecentMeasurements(measurementsRef.current.filter(measurement => (
-                    new Date(measurement.measuredAt) > cutoffTime &&
-                    measurement.frequency !== undefined
+                    new Date(measurement.measuredAt) > cutoffTime
                 )).map(measurement => ({
                     x: new Date(measurement.measuredAt),
                     y: measurement.frequency!,
