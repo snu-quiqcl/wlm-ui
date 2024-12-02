@@ -8,6 +8,8 @@ import {
 } from '../../store/slices/channel/channel';
 import './Channel.scss';
 
+const TIME_RANGE = 30 * 1000;
+
 interface IProps extends ChannelInfo {
     onClickSetInUse: (inUse: boolean) => void;
     onClickSetExposure: (exposure: number) => void;
@@ -20,6 +22,8 @@ const Channel = (props: IProps) => {
     const [period, setPeriod] = useState<number>(0);
     const measurementsRef = useRef(props.measurements);
     const [recentMeasurements, setRecentMeasurements] = useState<{ x: Date, y: number }[]>([]);
+    const [timeWindow, setTimeWindow] = useState<{ min: Date, max: Date }>(
+        { min: new Date(Date.now() - TIME_RANGE), max: new Date() });
     const latestMeasurement = props.measurements.at(-1)
     const dispatch = useDispatch<AppDispatch>();
 
@@ -69,7 +73,8 @@ const Channel = (props: IProps) => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const cutoffTime = new Date(Date.now() - 30 * 1000);
+            const now = new Date();
+            const cutoffTime = new Date(now.getTime() - TIME_RANGE);
 
             setRecentMeasurements(measurementsRef.current.filter(measurement => (
                 new Date(measurement.measuredAt) > cutoffTime &&
@@ -78,6 +83,8 @@ const Channel = (props: IProps) => {
                 x: new Date(measurement.measuredAt),
                 y: measurement.frequency!,
             })));
+
+            setTimeWindow({ min: cutoffTime, max: now });
         }, 100);
 
         return () => clearInterval(interval);
@@ -111,8 +118,52 @@ const Channel = (props: IProps) => {
                             data: recentMeasurements,
                         },
                     ]}
+                    xScale={{
+                        type: 'time',
+                        precision: 'millisecond',
+                        min: timeWindow.min,
+                        max: timeWindow.max,
+                    }}
+                    xFormat='time:%M:%S.%L'
+                    yScale={{
+                        type: 'linear',
+                        min: 'auto',
+                        max: 'auto',
+                        nice: true,
+                    }}
+                    yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
                     width={500}
                     height={300}
+                    margin={{
+                        top: 30,
+                        right: 50,
+                        bottom: 30,
+                        left: 100,
+                    }}
+                    curve='monotoneX'
+                    lineWidth={2}
+                    enablePoints
+                    pointSize={8}
+                    pointColor={{ from: 'color' }}
+                    pointBorderWidth={1}
+                    pointBorderColor='#fff'
+                    enableGridX
+                    gridXValues='every 5 seconds'
+                    enableGridY
+                    axisBottom={{
+                        format: '%M:%S',
+                        tickValues: 'every 5 seconds',
+                    }}
+                    axisLeft={{
+                        format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
+                        legend: 'Frequency (MHz)',
+                        legendOffset: -70,
+                        legendPosition: 'middle',
+                    }}
+                    isInteractive
+                    enableSlices='x'
+                    enableCrosshair
+                    animate={false}
                 />
                 <h1>
                     {latestMeasurement ? (
