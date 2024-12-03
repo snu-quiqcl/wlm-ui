@@ -21,6 +21,7 @@ interface IProps extends ChannelInfo {
 const Channel = (props: IProps) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
+    const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
     const measurementsRef = useRef(props.measurements);
@@ -117,6 +118,10 @@ const Channel = (props: IProps) => {
         setIsInUseButtonEnabled(true);
     }, [props.inUse]);
 
+    useEffect(() => {
+        setIsLockButtonEnabled(true);
+    }, [props.hasLock]);
+
     return (
         <div className='channel-item'>
             <div className='channel-title'>
@@ -206,7 +211,15 @@ const Channel = (props: IProps) => {
             <div className='channel-lock-container'>
                 <span>{props.lock.locked ? `Locked by ${props.lock.owner}` : 'Open'}</span>
                 <button
-                    onClick={props.hasLock ? props.onClickReleaseLock : props.onClickTryLock }
+                    disabled={!isLockButtonEnabled}
+                    onClick={() => {
+                        setIsLockButtonEnabled(false);
+                        if (props.hasLock) {
+                            props.onClickReleaseLock();
+                        } else {
+                            props.onClickTryLock();
+                        }
+                    }}
                 >
                     {props.hasLock ? 'Release' : 'Acquire'}
                 </button>
