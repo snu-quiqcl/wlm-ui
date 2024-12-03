@@ -19,11 +19,18 @@ export interface MeasurementType {
     measuredAt: string;
 };
 
+export interface LockType {
+    locked: boolean;
+    owner: string | null;
+};
+
 export interface ChannelInfo {
     channel: ChannelType;
     inUse: boolean;
     setting: SettingType;
     measurements: MeasurementType[];
+    hasLock: boolean;
+    lock: LockType;
 };
 
 export interface ChannelListInfo {
@@ -49,7 +56,8 @@ const getChannelInfoWithException = (state: ChannelListInfo, channel: number) =>
 export const fetchList = createAsyncThunk(
     'channel/fetch',
     async () => {
-        const response = await axios.get<(ChannelType & Pick<ChannelInfo, 'inUse'>)[]>('/channel/');
+        const response = await axios.get<
+            (ChannelType & Pick<ChannelInfo, 'inUse' | 'hasLock'>)[]>('/channel/');
         return response.data;
     },
 );
@@ -128,6 +136,8 @@ export const channelListSlice = createSlice({
                         inUse: ch.inUse,
                         setting: info?.setting ?? { exposure: 0, period: 0 },
                         measurements: info?.measurements ?? [],
+                        hasLock: ch.hasLock,
+                        lock: info?.lock ?? { locked: false, owner: null },
                     } as ChannelInfo;
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
             })
