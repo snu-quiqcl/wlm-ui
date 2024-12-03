@@ -86,6 +86,24 @@ export const postPeriod = createAsyncThunk(
     },
 );
 
+export const tryLock = createAsyncThunk(
+    'channel/tryLock',
+    async (payload: Pick<ChannelType, 'channel'>) => {
+        const { channel } = payload;
+        await axios.post(`/lock/${channel}/try/`);
+        return { channel: channel };
+    },
+);
+
+export const releaseLock = createAsyncThunk(
+    'channel/releaseLock',
+    async (payload: Pick<ChannelType, 'channel'>) => {
+        const { channel } = payload;
+        await axios.put(`/lock/${channel}/release/`);
+        return { channel: channel };
+    },
+);
+
 export const channelListSlice = createSlice({
     name: 'channelList',
     initialState,
@@ -151,6 +169,14 @@ export const channelListSlice = createSlice({
             .addCase(postInUse.fulfilled, (state, action) => {
                 const info = getChannelInfoWithException(state, action.payload.channel);
                 info.inUse = action.payload.inUse;
+            })
+            .addCase(tryLock.fulfilled, (state, action) => {
+                const info = getChannelInfoWithException(state, action.payload.channel);
+                info.hasLock = true;
+            })
+            .addCase(releaseLock.fulfilled, (state, action) => {
+                const info = getChannelInfoWithException(state, action.payload.channel);
+                info.hasLock = false;
             })
     },
 });
