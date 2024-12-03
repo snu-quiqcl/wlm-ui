@@ -7,7 +7,7 @@ interface IProps extends ChannelInfo {
     onClickUse: () => void;
     onClickSetExposure: (exposure: number) => void;
     onClickSetPeriod: (period: number) => void;
-}
+};
 
 const Channel = (props: IProps) => {
     const [exposure, setExposure] = useState<number>(0);
