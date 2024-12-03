@@ -32,6 +32,14 @@ const ChannelList = () => {
         dispatch(postPeriod({ channel: channel, period: period }));
     };
 
+    const onClickTryLock = (channel: number) => {
+
+    };
+
+    const onClickReleaseLock = (channel: number) => {
+
+    };
+
     return (
         <div>
             <button onClick={onClickRefreshChannelList}>Refresh</button>
@@ -46,6 +54,8 @@ const ChannelList = () => {
                                 onClickSetExposure(info.channel.channel, exposure)}
                             onClickSetPeriod={(period: number) =>
                                 onClickSetPeriod(info.channel.channel, period)}
+                            onClickTryLock={() => onClickTryLock(info.channel.channel)}
+                            onClickReleaseLock={() => onClickReleaseLock(info.channel.channel)}
                         />
                     </article>
                 ))}

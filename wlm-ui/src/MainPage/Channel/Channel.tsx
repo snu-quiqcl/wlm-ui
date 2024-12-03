@@ -14,6 +14,8 @@ interface IProps extends ChannelInfo {
     onClickSetInUse: (inUse: boolean) => void;
     onClickSetExposure: (exposure: number) => void;
     onClickSetPeriod: (period: number) => void;
+    onClickTryLock: () => void;
+    onClickReleaseLock: () => void;
 };
 
 const Channel = (props: IProps) => {
@@ -203,7 +205,11 @@ const Channel = (props: IProps) => {
             </div>
             <div className='channel-lock-container'>
                 <span>{props.lock.locked ? `Locked by ${props.lock.owner}` : 'Open'}</span>
-                <button>{props.hasLock ? 'Release' : 'Acquire'}</button>
+                <button
+                    onClick={props.hasLock ? props.onClickReleaseLock : props.onClickTryLock }
+                >
+                    {props.hasLock ? 'Release' : 'Acquire'}
+                </button>
             </div>
             <div className='channel-attr-viewer-container'>
                 <b>Exp. time</b>
