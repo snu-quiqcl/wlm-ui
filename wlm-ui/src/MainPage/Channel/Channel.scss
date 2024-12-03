@@ -12,6 +12,13 @@
     justify-content: space-between;
 }
 
+.channel-lock-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+}
+
 .channel-attr-viewer-container {
     display: flex;
     flex-direction: row;

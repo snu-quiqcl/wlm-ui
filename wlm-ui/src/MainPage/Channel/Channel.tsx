@@ -188,6 +188,10 @@ const Channel = (props: IProps) => {
                     )}
                 </h1>
             </div>
+            <div className='channel-lock-container'>
+                <span>{props.lock.locked ? `Locked by ${props.lock.owner}` : 'Open'}</span>
+                <button>{props.hasLock ? 'Release' : 'Acquire'}</button>
+            </div>
             <div className='channel-attr-viewer-container'>
                 <b>Exp. time</b>
                 <span style={{ width: '60px', textAlign: 'right' }}>
