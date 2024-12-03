@@ -115,6 +115,13 @@ export const channelListSlice = createSlice({
                 info.measurements.push(measurements);
             }
         },
+        fetchLock: (
+            state, action: PayloadAction<Pick<ChannelType, 'channel'> & { lock: LockType }>
+        ) => {
+            const { channel, lock } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            info.lock = lock;
+        },
         removeOldMeasurements: (state, action: PayloadAction<Pick<ChannelType, 'channel'>>) => {
             const info = getChannelInfoWithException(state, action.payload.channel);
             const cutoffTime = new Date(Date.now() - 10 * 60 * 1000);
