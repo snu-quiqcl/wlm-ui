@@ -1,5 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+import { RootState } from '../..';
+
 export interface EventType {
     category: string;
     content: string;
@@ -25,5 +27,6 @@ export const EventListSlice = createSlice({
 });
 
 export const eventListActions = EventListSlice.actions;
+export const selectEventList = (state: RootState) => state.eventList;
 
 export default EventListSlice.reducer;

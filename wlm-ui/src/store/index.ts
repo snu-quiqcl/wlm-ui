@@ -1,12 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import channelListReducer from './slices/channel/channel';
 import userReducer from './slices/user/user';
+import channelListReducer from './slices/channel/channel';
+import eventListReducer from './slices/event/event';
 
 export const store = configureStore({
     reducer: {
         user: userReducer,
         channelList: channelListReducer,
+        eventList: eventListReducer,
     },
 });
 
