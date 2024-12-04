@@ -114,6 +114,14 @@ export const channelListSlice = createSlice({
     name: 'channel',
     initialState,
     reducers: {
+        fetchOperation: (
+            state,
+            action: PayloadAction<Pick<ChannelType, 'channel'> & { operation: OperationType }>
+        ) => {
+            const { channel, operation } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            info.operation = operation;
+        },
         fetchSetting: (
             state, action: PayloadAction<Pick<ChannelType, 'channel'> & Partial<SettingType>>
         ) => {

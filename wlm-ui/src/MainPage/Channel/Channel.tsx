@@ -4,7 +4,7 @@ import { Line } from '@nivo/line';
 
 import { AppDispatch } from '../../store';
 import {
-    channelListActions, SettingType, MeasurementType, LockType, ChannelInfo
+    channelListActions, OperationType, SettingType, MeasurementType, LockType, ChannelInfo
 } from '../../store/slices/channel/channel';
 import './Channel.scss';
 
@@ -41,6 +41,19 @@ const Channel = (props: IProps) => {
             const data = JSON.parse(event.data) as Partial<SettingType>;
             dispatch(channelListActions.fetchSetting(
                 { channel: channel, ...data }));
+        };
+
+        return () => socket.close();
+    }, [dispatch, props.channel.channel]);
+
+    useEffect(() => {
+        const channel = props.channel.channel;
+        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/operation/${channel}/`);
+
+        socket.onmessage = event => {
+            const data = JSON.parse(event.data) as OperationType;
+            dispatch(channelListActions.fetchOperation(
+                { channel: channel, operation: data }));
         };
 
         return () => socket.close();
