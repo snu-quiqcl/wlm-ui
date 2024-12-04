@@ -22,6 +22,7 @@ const Channel = (props: IProps) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
+    const canUpdateSettings = !props.lock.locked || (props.hasLock && isLockButtonEnabled);
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
     const measurementsRef = useRef(props.measurements);
@@ -234,7 +235,7 @@ const Channel = (props: IProps) => {
                     {props.setting.period} s
                 </span>
             </div>
-            <div className={'channel-attr-editor-container'}>
+            <div className={`channel-attr-editor-container ${!canUpdateSettings && 'disabled'}`}>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>
                 <input
                     type='number'

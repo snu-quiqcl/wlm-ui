@@ -31,4 +31,9 @@
     grid-template-columns: auto 60px auto auto;
     grid-template-rows: auto auto;
     gap: 10px;
+
+    &.disabled {
+        pointer-events: none;
+        opacity: 0.5;
+    }
 }
