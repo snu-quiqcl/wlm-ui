@@ -8,6 +8,11 @@ export interface ChannelType {
     name: string;
 };
 
+export interface OperationType {
+    on: boolean;
+    requesters: string[];
+};
+
 export interface SettingType {
     exposure: number;
     period: number;
@@ -27,6 +32,7 @@ export interface LockType {
 export interface ChannelInfo {
     channel: ChannelType;
     inUse: boolean;
+    operation: OperationType;
     setting: SettingType;
     measurements: MeasurementType[];
     hasLock: boolean;
@@ -159,6 +165,7 @@ export const channelListSlice = createSlice({
                     return {
                         channel: { channel: ch.channel, name: ch.name },
                         inUse: ch.inUse,
+                        operation: info?.operation ?? { on: false, requesters: [] },
                         setting: info?.setting ?? { exposure: 0, period: 0 },
                         measurements: info?.measurements ?? [],
                         hasLock: ch.hasLock,
