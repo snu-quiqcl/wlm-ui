@@ -5,6 +5,7 @@ import { AppDispatch } from '../store';
 import { signout } from '../store/slices/user/user';
 import { calibrate } from '../store/slices/calibration/calibration';
 import ChannelList from './Channel/ChannelList';
+import EventList from './EventList/EventList';
 
 const MainPage = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -22,6 +23,7 @@ const MainPage = () => {
             <button onClick={onClickCalibration}>Calibration</button>
             <button onClick={onClickSignout}>Sign out</button>
             <ChannelList />
+            <EventList />
         </div>
     );
 };
