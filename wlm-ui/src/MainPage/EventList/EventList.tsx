@@ -30,9 +30,9 @@ const EventList = () => {
 
                     return (
                         <div key={index} className="event-component">
-                            <span>{timestamp.toLocaleString()}</span>
-                            <span>{event.category}</span>
-                            <span>{event.content}</span>
+                            <span style={{ flexBasis: '200px', textAlign: 'left' }}>{timestamp.toLocaleString()}</span>
+                            <span style={{ flexBasis: '100px', textAlign: 'left' }}>{event.category}</span>
+                            <span style={{ textAlign: 'left' }}>{event.content}</span>
                         </div>
                     );
                 })}
