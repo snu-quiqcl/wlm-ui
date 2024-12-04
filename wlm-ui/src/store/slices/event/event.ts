@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../..';
 
@@ -23,7 +23,12 @@ const initialState: EventListInfo = {
 export const EventListSlice = createSlice({
     name: 'event',
     initialState,
-    reducers: {},
+    reducers: {
+        fetchEvent: (state, action: PayloadAction<{ event: EventType }>) => {
+            const { event } = action.payload;
+            state.events = [{ event: event } as EventInfo, ...state.events];
+        },
+    },
 });
 
 export const eventListActions = EventListSlice.actions;
