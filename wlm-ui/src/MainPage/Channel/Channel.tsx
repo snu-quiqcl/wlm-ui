@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { ChannelInfo } from '../../store/slices/channel/channel';
-import './Channel.scss'
+import './Channel.scss';
 
 interface IProps extends ChannelInfo {
     onClickUse: () => void;
