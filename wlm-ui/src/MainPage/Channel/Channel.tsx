@@ -141,6 +141,7 @@ const Channel = (props: IProps) => {
             <div className='channel-title'>
                 <b>CH {props.channel.channel}</b>
                 <span>{props.channel.name}</span>
+                <span>{props.operation.on ? 'ON' : 'OFF'}</span>
                 <button
                     disabled={!isInUseButtonEnabled}
                     onClick={() => {
@@ -152,6 +153,9 @@ const Channel = (props: IProps) => {
                     {props.inUse ? 'In use' : 'Use'}
                 </button>
             </div>
+            <span style={{ textAlign: 'left' }}>
+                Requesters: {props.operation.requesters.join(', ')}
+            </span>
             <div style={{ display: props.inUse ? 'block' : 'none' }}>
                 <button onClick={() => setShouldUpdatePlot(!shouldUpdatePlot)}>
                     {shouldUpdatePlot ? 'Stop' : 'Start'}
