@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { Line } from '@nivo/line';
 
-import { AppDispatch } from '../../store';
+import { AppDispatch } from '../../../../store';
 import {
     channelListActions, OperationType, SettingType, MeasurementType, LockType, ChannelInfo
-} from '../../store/slices/channel/channel';
+} from '../../../../store/slices/channel/channel';
 import './Channel.scss';
 
 const TIME_RANGE = 30 * 1000;

@@ -3,8 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 import './App.css';
-import InitPage from './InitPage/InitPage';
-import MainPage from './MainPage/MainPage';
+import InitPage from './pages/InitPage/InitPage';
+import MainPage from './pages/MainPage/MainPage';
 import { selectUser } from './store/slices/user/user';
 
 function App() {

@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { AppDispatch } from '../../store';
+import { AppDispatch } from '../../../../store';
 import {
     fetchList, postInUse, postExposure, postPeriod, tryLock, releaseLock, selectChannelList,
-} from '../../store/slices/channel/channel';
-import Channel from './Channel';
+} from '../../../../store/slices/channel/channel';
+import Channel from '../Channel/Channel';
 import './ChannelList.scss';
 
 const ChannelList = () => {
