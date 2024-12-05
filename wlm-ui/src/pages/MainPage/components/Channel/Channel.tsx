@@ -4,21 +4,14 @@ import { Line } from '@nivo/line';
 
 import { AppDispatch } from '../../../../store';
 import {
-    channelListActions, OperationType, SettingType, MeasurementType, LockType, ChannelInfo
+    channelListActions, OperationType, SettingType, MeasurementType, LockType, ChannelInfo,
+    postInUse, postExposure, postPeriod, tryLock, releaseLock,
 } from '../../../../store/slices/channel/channel';
 import './Channel.scss';
 
 const TIME_RANGE = 30 * 1000;
 
-interface IProps extends ChannelInfo {
-    onClickSetInUse: (inUse: boolean) => void;
-    onClickSetExposure: (exposure: number) => void;
-    onClickSetPeriod: (period: number) => void;
-    onClickTryLock: () => void;
-    onClickReleaseLock: () => void;
-};
-
-const Channel = (props: IProps) => {
+const Channel = (props: ChannelInfo) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
@@ -136,6 +129,26 @@ const Channel = (props: IProps) => {
         setIsLockButtonEnabled(true);
     }, [props.hasLock]);
 
+    const onClickSetInUse = (inUse: boolean) => {
+        dispatch(postInUse({ channel: props.channel.channel, inUse: inUse }));
+    };
+
+    const onClickSetExposure = (exposure: number) => {
+        dispatch(postExposure({ channel: props.channel.channel, exposure: exposure }));
+    };
+    
+    const onClickSetPeriod = (period: number) => {
+        dispatch(postPeriod({ channel: props.channel.channel, period: period }));
+    };
+
+    const onClickTryLock = () => {
+        dispatch(tryLock({ channel: props.channel.channel }));
+    };
+
+    const onClickReleaseLock = () => {
+        dispatch(releaseLock({ channel: props.channel.channel }));
+    };
+
     return (
         <div className='channel-item'>
             <div className='channel-title'>
@@ -146,7 +159,7 @@ const Channel = (props: IProps) => {
                     disabled={!isInUseButtonEnabled}
                     onClick={() => {
                         setIsInUseButtonEnabled(false);
-                        props.onClickSetInUse(props.inUse);
+                        onClickSetInUse(props.inUse);
                     }}
                     style={{ width: '60px' }}
                 >
@@ -233,9 +246,9 @@ const Channel = (props: IProps) => {
                     onClick={() => {
                         setIsLockButtonEnabled(false);
                         if (props.hasLock) {
-                            props.onClickReleaseLock();
+                            onClickReleaseLock();
                         } else {
-                            props.onClickTryLock();
+                            onClickTryLock();
                         }
                     }}
                 >
@@ -263,7 +276,7 @@ const Channel = (props: IProps) => {
                     style={{ textAlign: 'right' }}
                 />
                 <span style={{ textAlign: 'left' }}>ms</span>
-                <button onClick={() => props.onClickSetExposure(exposure)}>Set</button>
+                <button onClick={() => onClickSetExposure(exposure)}>Set</button>
                 <b style={{ textAlign: 'left' }}>Period</b>
                 <input
                     type='number'
@@ -274,7 +287,7 @@ const Channel = (props: IProps) => {
                     style={{ textAlign: 'right' }}
                 />
                 <span style={{ textAlign: 'left' }}>s</span>
-                <button onClick={() => props.onClickSetPeriod(period)}>Set</button>
+                <button onClick={() => onClickSetPeriod(period)}>Set</button>
             </div>
         </div>
     );
