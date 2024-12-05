@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
+import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -10,7 +11,7 @@ import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 
 import { AppDispatch } from '../../store';
-import { signin } from '../../store/slices/user/user';
+import { signin, selectUser } from '../../store/slices/user/user';
 
 const Container = styled(Stack)(() => ({
     height: '100vh',
@@ -34,7 +35,15 @@ const Card = styled(MuiCard)(({ theme }) => ({
 const InitPage = () => {
     const [usernameErrorMessage, setUsernameErrorMessage] = useState<string>('');
     const [passwordErrorMessage, setPasswordErrorMessage] = useState<string>('');
+    const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
+    const userState = useSelector(selectUser);
     const dispatch = useDispatch<AppDispatch>();
+
+    useEffect(() => {
+        if (userState.isSignedIn === false) {
+            setOpenSnackbar(true);
+        }
+    }, [userState.isSignedIn]);
 
     const handleSignin = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -118,6 +127,12 @@ const InitPage = () => {
                     </Button>
                 </Box>
             </Card>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={3000}
+                message='Sign-in failed'
+                onClose={() => setOpenSnackbar(false)}
+            />
         </Container>
     );
 };
