@@ -4,6 +4,9 @@
   "private": false,
   "proxy": "http://127.0.0.1:8000",
   "dependencies": {
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@mui/material": "^6.1.10",
     "@nivo/core": "^0.88.0",
     "@nivo/line": "^0.88.0",
     "@reduxjs/toolkit": "^2.3.0",
