@@ -2,17 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { Line } from '@nivo/line';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Collapse from '@mui/material/Collapse';
+import FormControl from '@mui/material/FormControl';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
+import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import MuiCard from '@mui/material/Card';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { styled } from '@mui/material/styles';
 
 import { AppDispatch } from '../../../../store';
 import {
     channelListActions, OperationType, SettingType, MeasurementType, LockType, ChannelInfo,
-    postInUse, postExposure, postPeriod, tryLock, releaseLock,
+    postInUse, postSetting, tryLock, releaseLock,
 } from '../../../../store/slices/channel/channel';
 import './Channel.scss';
 
@@ -35,8 +42,7 @@ const Channel = (props: ChannelInfo) => {
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
     const canUpdateSettings = !props.lock.locked || (props.hasLock && isLockButtonEnabled);
-    const [exposure, setExposure] = useState<number>(0);
-    const [period, setPeriod] = useState<number>(0);
+    const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
     const measurementsRef = useRef(props.measurements);
     const [recentMeasurements, setRecentMeasurements] = useState<
         { x: Date, y: number | null }[]>([]);
@@ -168,12 +174,26 @@ const Channel = (props: ChannelInfo) => {
         dispatch(postInUse({ channel: props.channel.channel, inUse: inUse }));
     };
 
-    const onClickSetExposure = (exposure: number) => {
-        dispatch(postExposure({ channel: props.channel.channel, exposure: exposure }));
+    const getExposure = () => {
+        const exposureText = document.getElementById('exposure') as HTMLInputElement;
+        if (!exposureText.value) {
+            return;
+        }
+        return Number(exposureText.value) / 1e3;
     };
-    
-    const onClickSetPeriod = (period: number) => {
-        dispatch(postPeriod({ channel: props.channel.channel, period: period }));
+
+    const getPeriod = () => {
+        const periodText = document.getElementById('period') as HTMLInputElement;
+        if (!periodText.value) {
+            return;
+        }
+        return Number(periodText.value);
+    };
+
+    const handleSetting = (setting: Partial<SettingType>) => {
+        if (setting.exposure || setting.period) {
+            dispatch(postSetting({ channel: props.channel.channel, ...setting }));
+        }
     };
 
     const onClickTryLock = () => {
@@ -351,30 +371,109 @@ const Channel = (props: ChannelInfo) => {
                     </Typography>
                 </Stack>
             </Stack>
-            <div className={`channel-attr-editor-container ${!canUpdateSettings && 'disabled'}`}>
-                <b style={{ textAlign: 'left' }}>Exp. time</b>
-                <input
-                    type='number'
-                    min={0}
-                    step={10}
-                    value={exposure * 1e3}
-                    onChange={(e) => setExposure(Number(e.target.value) / 1e3)}
-                    style={{ textAlign: 'right' }}
-                />
-                <span style={{ textAlign: 'left' }}>ms</span>
-                <button onClick={() => onClickSetExposure(exposure)}>Set</button>
-                <b style={{ textAlign: 'left' }}>Period</b>
-                <input
-                    type='number'
-                    min={0}
-                    step={0.1}
-                    value={period}
-                    onChange={(e) => setPeriod(Number(e.target.value))}
-                    style={{ textAlign: 'right' }}
-                />
-                <span style={{ textAlign: 'left' }}>s</span>
-                <button onClick={() => onClickSetPeriod(period)}>Set</button>
-            </div>
+            <Stack
+                sx={{ gap: 0 }}
+            >
+                <Stack
+                    direction='row'
+                    sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                    <Typography variant='subtitle2'>
+                        Settings
+                    </Typography>
+                    <IconButton
+                        onClick={() => setIsSettingOpen(!isSettingOpen)}
+                        sx={{
+                            transform: isSettingOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.3s ease',
+                        }}
+                    >
+                        <ExpandMoreIcon />
+                    </IconButton>
+                </Stack>
+                <Collapse in={isSettingOpen}>
+                    <Stack
+                        direction='row'
+                        sx={{ justifyContent: 'space-between', alignItems: 'flex-end', gap: 2 }}
+                    >
+                        <Box
+                            component='form'
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                handleSetting({ exposure: getExposure() });
+                            }}
+                            sx={{ width: '40%' }}
+                        >
+                            <FormControl>
+                                <TextField
+                                    id='exposure'
+                                    label='Exposure'
+                                    placeholder='100'
+                                    variant='standard'
+                                    size='small'
+                                    autoFocus
+                                    fullWidth
+                                    slotProps={{
+                                        htmlInput: { style: { fontSize: '0.8rem' } },
+                                        inputLabel: { style: { fontSize: '0.8rem' } },
+                                        input: {
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <Typography sx={{ fontSize: '0.8rem' }}>
+                                                        ms
+                                                    </Typography>
+                                                </InputAdornment>
+                                            ),
+                                        },
+                                    }}
+                                />
+                            </FormControl>
+                        </Box>
+                        <Box
+                            component='form'
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                handleSetting({ period: getPeriod() });
+                            }}
+                            sx={{ width: '40%' }}
+                        >
+                            <FormControl>
+                                <TextField
+                                    id='period'
+                                    label='Period'
+                                    placeholder='1'
+                                    variant='standard'
+                                    size='small'
+                                    autoFocus
+                                    fullWidth
+                                    slotProps={{
+                                        htmlInput: { style: { fontSize: '0.8rem' } },
+                                        inputLabel: { style: { fontSize: '0.8rem' } },
+                                        input: {
+                                            endAdornment:
+                                                <InputAdornment position="end">
+                                                    <Typography sx={{ fontSize: '0.8rem' }}>
+                                                        s
+                                                    </Typography>
+                                                </InputAdornment>,
+                                        },
+                                    }}
+                                />
+                            </FormControl>
+                        </Box>
+                        <Button
+                            variant='text'
+                            size='small'
+                            sx={{ fontSize: '0.8rem' }}
+                            onClick={() => {
+                                handleSetting({ exposure: getExposure(), period: getPeriod() });
+                            }}
+                        >
+                            APPLY
+                        </Button>
+                    </Stack>
+                </Collapse>
+            </Stack>
         </Card>
     );
 };
