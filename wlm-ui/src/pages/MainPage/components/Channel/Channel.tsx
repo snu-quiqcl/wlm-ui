@@ -4,6 +4,7 @@ import { Line } from '@nivo/line';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
@@ -42,6 +43,7 @@ const Channel = (props: ChannelInfo) => {
     const [timeWindow, setTimeWindow] = useState<{ min: Date, max: Date }>(
         { min: new Date(Date.now() - TIME_RANGE), max: new Date() });
     const latestMeasurement = props.measurements.at(-1);
+    const [requestersText, setRequestersText] = useState<string>('');
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
@@ -147,6 +149,21 @@ const Channel = (props: ChannelInfo) => {
         setIsLockButtonEnabled(true);
     }, [props.hasLock]);
 
+    useEffect(() => {
+        const requesters = props.operation.requesters;
+
+        if (requesters.length === 0) {
+            setRequestersText('No users are watching.');
+        } else if (requesters.length === 1) {
+            setRequestersText(`${requesters[0]} is watching.`);
+        } else if (requesters.length === 2) {
+            setRequestersText(`${requesters[0]} and ${requesters[1]} are watching.`);
+        } else {
+            setRequestersText(
+                `${requesters.slice(0, -1).join(', ')}, and ${requesters.at(-1)} are watching.`);
+        }
+    }, [props.operation.requesters]);
+
     const onClickSetInUse = (inUse: boolean) => {
         dispatch(postInUse({ channel: props.channel.channel, inUse: inUse }));
     };
@@ -186,22 +203,24 @@ const Channel = (props: ChannelInfo) => {
                 <Stack
                     sx={{ alignItems: 'flex-end' }}
                 >
-                    <Stack
-                        direction='row'
-                        sx={{ alignItems: 'center', gap: 1, marginRight: 1 }}
-                    >
-                        <Typography variant='overline'>
-                            {props.operation.on ? 'on' : 'off'}
-                        </Typography>
-                        <Box
-                            sx={{
-                                width: 12,
-                                height: 12,
-                                backgroundColor: props.operation.on ? 'green' : 'grey',
-                                borderRadius: '50%',
-                            }}
-                        />
-                    </Stack>
+                    <Tooltip title={requestersText} placement='top'>
+                        <Stack
+                            direction='row'
+                            sx={{ alignItems: 'center', gap: 1, marginRight: 1 }}
+                        >
+                            <Typography variant='overline'>
+                                {props.operation.on ? 'on' : 'off'}
+                            </Typography>
+                            <Box
+                                sx={{
+                                    width: 12,
+                                    height: 12,
+                                    backgroundColor: props.operation.on ? 'green' : 'grey',
+                                    borderRadius: '50%',
+                                }}
+                            />
+                        </Stack>
+                    </Tooltip>
                     <Switch
                         checked={props.inUse}
                         disabled={!isInUseButtonEnabled}
@@ -213,9 +232,6 @@ const Channel = (props: ChannelInfo) => {
                     />
                 </Stack>
             </Stack>
-            <span style={{ textAlign: 'left' }}>
-                Requesters: {props.operation.requesters.join(', ')}
-            </span>
             <div style={{ display: props.inUse ? 'block' : 'none' }}>
                 <button onClick={() => setShouldUpdatePlot(!shouldUpdatePlot)}>
                     {shouldUpdatePlot ? 'Stop' : 'Start'}
