@@ -26,8 +26,9 @@ const Card = styled(MuiCard)(({ theme }) => ({
     [theme.breakpoints.up('sm')]: {
         maxWidth: '450px',
     },
-    padding: theme.spacing(4),
-    gap: theme.spacing(2),
+    padding: theme.spacing(6),
+    gap: theme.spacing(4),
+    borderRadius: theme.spacing(1),
     boxShadow:
         'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
 }));
@@ -120,8 +121,9 @@ const InitPage = () => {
                     </FormControl>
                     <Button
                         type='submit'
-                        fullWidth
                         variant='contained'
+                        fullWidth
+                        sx={{ marginTop: 2 }}
                     >
                         Sign in
                     </Button>
