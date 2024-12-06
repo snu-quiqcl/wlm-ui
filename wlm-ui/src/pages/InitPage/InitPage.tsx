@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
 import Snackbar from '@mui/material/Snackbar';
@@ -77,19 +76,18 @@ const InitPage = () => {
         <Container>
             <Card variant='outlined'>
                 <Typography
-                    component="h1"
-                    variant="h4"
+                    component='h1'
+                    variant='h4'
                     sx={{ alignSelf: 'flex-start', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
                 >
                     Sign in
                 </Typography>
-                <Box
+                <Stack
                     component='form'
+                    direction='column'
                     noValidate
                     onSubmit={handleSignin}
                     sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
                         width: '100%',
                         gap: 2,
                     }}
@@ -127,7 +125,7 @@ const InitPage = () => {
                     >
                         Sign in
                     </Button>
-                </Box>
+                </Stack>
             </Card>
             <Snackbar
                 open={openSnackbar}
