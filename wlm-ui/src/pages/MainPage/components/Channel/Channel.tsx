@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { Line } from '@nivo/line';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Switch from '@mui/material/Switch';
+import Typography from '@mui/material/Typography';
+import MuiCard from '@mui/material/Card';
+import { styled } from '@mui/material/styles';
 
 import { AppDispatch } from '../../../../store';
 import {
@@ -10,6 +16,18 @@ import {
 import './Channel.scss';
 
 const TIME_RANGE = 30 * 1000;
+
+const Card = styled(MuiCard)(({ theme }) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+        maxWidth: '450px',
+    },
+    padding: theme.spacing(2),
+    gap: theme.spacing(2),
+    borderRadius: theme.spacing(1),
+}));
 
 const Channel = (props: ChannelInfo) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
@@ -150,22 +168,51 @@ const Channel = (props: ChannelInfo) => {
     };
 
     return (
-        <div className='channel-item'>
-            <div className='channel-title'>
-                <b>CH {props.channel.channel}</b>
-                <span>{props.channel.name}</span>
-                <span>{props.operation.on ? 'ON' : 'OFF'}</span>
-                <button
-                    disabled={!isInUseButtonEnabled}
-                    onClick={() => {
-                        setIsInUseButtonEnabled(false);
-                        onClickSetInUse(props.inUse);
-                    }}
-                    style={{ width: '60px' }}
+        <Card variant='outlined'>
+            <Stack
+                direction='row'
+                sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+            >
+                <Stack
+                    sx={{ alignItems: 'flex-start' }}
                 >
-                    {props.inUse ? 'In use' : 'Use'}
-                </button>
-            </div>
+                    <Typography component='h1' variant='h6'>
+                        CH {props.channel.channel}
+                    </Typography>
+                    <Typography component='h2' variant='subtitle1'>
+                        {props.channel.name}
+                    </Typography>
+                </Stack>
+                <Stack
+                    sx={{ alignItems: 'flex-end' }}
+                >
+                    <Stack
+                        direction='row'
+                        sx={{ alignItems: 'center', gap: 1, marginRight: 1 }}
+                    >
+                        <Typography variant='overline'>
+                            {props.operation.on ? 'on' : 'off'}
+                        </Typography>
+                        <Box
+                            sx={{
+                                width: 12,
+                                height: 12,
+                                backgroundColor: props.operation.on ? 'green' : 'grey',
+                                borderRadius: '50%',
+                            }}
+                        />
+                    </Stack>
+                    <Switch
+                        checked={props.inUse}
+                        disabled={!isInUseButtonEnabled}
+                        size='small'
+                        onChange={() => {
+                            setIsInUseButtonEnabled(false);
+                            onClickSetInUse(props.inUse);
+                        }}
+                    />
+                </Stack>
+            </Stack>
             <span style={{ textAlign: 'left' }}>
                 Requesters: {props.operation.requesters.join(', ')}
             </span>
@@ -289,7 +336,7 @@ const Channel = (props: ChannelInfo) => {
                 <span style={{ textAlign: 'left' }}>s</span>
                 <button onClick={() => onClickSetPeriod(period)}>Set</button>
             </div>
-        </div>
+        </Card>
     );
 };
 
