@@ -25,7 +25,7 @@ const Channel = (props: IProps) => {
     const [recentMeasurements, setRecentMeasurements] = useState<{ x: Date, y: number }[]>([]);
     const [timeWindow, setTimeWindow] = useState<{ min: Date, max: Date }>(
         { min: new Date(Date.now() - TIME_RANGE), max: new Date() });
-    const latestMeasurement = props.measurements.at(-1)
+    const latestMeasurement = props.measurements.at(-1);
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
