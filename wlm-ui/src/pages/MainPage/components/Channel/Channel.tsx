@@ -318,16 +318,39 @@ const Channel = (props: ChannelInfo) => {
                     {props.hasLock ? 'Release' : 'Acquire'}
                 </button>
             </div>
-            <div className='channel-attr-viewer-container'>
-                <b>Exp. time</b>
-                <span style={{ width: '60px', textAlign: 'right' }}>
-                    {props.setting.exposure * 1e3} ms
-                </span>
-                <b>Period</b>
-                <span style={{ width: '60px', textAlign: 'right' }}>
-                    {props.setting.period} s
-                </span>
-            </div>
+            <Stack
+                direction='row'
+                sx={{ justifyContent: 'center', alignItems: 'center', gap: 4 }}
+            >
+                <Stack
+                    direction='row'
+                    sx={{ alignItems: 'center', gap: 1 }}
+                >
+                    <Typography
+                        variant='subtitle2'
+                        sx={{ fontWeight: 'bold' }}
+                    >
+                        Exp. time
+                    </Typography>
+                    <Typography variant='body2'>
+                        {props.setting.exposure * 1e3} ms
+                    </Typography>
+                </Stack>
+                <Stack
+                    direction='row'
+                    sx={{ alignItems: 'center', gap: 1 }}
+                >
+                    <Typography
+                        variant='subtitle2'
+                        sx={{ fontWeight: 'bold' }}
+                    >
+                        Period
+                    </Typography>
+                    <Typography variant='body2'>
+                        {props.setting.period} s
+                    </Typography>
+                </Stack>
+            </Stack>
             <div className={`channel-attr-editor-container ${!canUpdateSettings && 'disabled'}`}>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>
                 <input
