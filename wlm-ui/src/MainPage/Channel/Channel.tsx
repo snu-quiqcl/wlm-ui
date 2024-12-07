@@ -22,7 +22,8 @@ const Channel = (props: IProps) => {
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
     const measurementsRef = useRef(props.measurements);
-    const [recentMeasurements, setRecentMeasurements] = useState<{ x: Date, y: number }[]>([]);
+    const [recentMeasurements, setRecentMeasurements] = useState<
+        { x: Date, y: number | null }[]>([]);
     const [timeWindow, setTimeWindow] = useState<{ min: Date, max: Date }>(
         { min: new Date(Date.now() - TIME_RANGE), max: new Date() });
     const latestMeasurement = props.measurements.at(-1);
@@ -84,7 +85,7 @@ const Channel = (props: IProps) => {
                     new Date(measurement.measuredAt) > cutoffTime
                 )).map(measurement => ({
                     x: new Date(measurement.measuredAt),
-                    y: measurement.frequency!,
+                    y: measurement.frequency,
                 })));
 
                 setTimeWindow({ min: cutoffTime, max: now });
