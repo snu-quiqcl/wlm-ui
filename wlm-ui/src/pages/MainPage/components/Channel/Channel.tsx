@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
 import FormControl from '@mui/material/FormControl';
+import Grid from '@mui/material/Grid2';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Stack from '@mui/material/Stack';
@@ -14,6 +15,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import MuiCard from '@mui/material/Card';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { styled } from '@mui/material/styles';
 
 import { AppDispatch } from '../../../../store';
@@ -49,6 +52,7 @@ const Channel = (props: ChannelInfo) => {
     const [timeWindow, setTimeWindow] = useState<{ min: Date, max: Date }>(
         { min: new Date(Date.now() - TIME_RANGE), max: new Date() });
     const latestMeasurement = props.measurements.at(-1);
+    const [lockText, setLockText] = useState<string>('');
     const [requestersText, setRequestersText] = useState<string>('');
     const dispatch = useDispatch<AppDispatch>();
 
@@ -156,6 +160,14 @@ const Channel = (props: ChannelInfo) => {
     }, [props.hasLock]);
 
     useEffect(() => {
+        if (props.lock.locked) {
+            setLockText(`${props.lock.owner} holds the lock.`);
+        } else {
+            setLockText('No one holds the lock.');
+        }
+    }, [props.lock]);
+
+    useEffect(() => {
         const requesters = props.operation.requesters;
 
         if (requesters.length === 0) {
@@ -220,37 +232,98 @@ const Channel = (props: ChannelInfo) => {
                         {props.channel.name}
                     </Typography>
                 </Stack>
-                <Stack
-                    sx={{ alignItems: 'flex-end' }}
+                <Grid
+                    container
+                    sx={{ width: 140 }}
                 >
-                    <Tooltip title={requestersText} placement='top'>
-                        <Stack
-                            direction='row'
-                            sx={{ alignItems: 'center', gap: 1, marginRight: 1 }}
+                    <Grid
+                        container
+                        size={12}
+                        sx={{ display: 'flex', alignItems: 'center' }}
+                    >
+                        <Grid
+                            size={5.5}
+                            sx={{ display: 'flex', justifyContent: 'flex-start' }}
                         >
-                            <Typography variant='overline'>
-                                {props.operation.on ? 'on' : 'off'}
-                            </Typography>
+                            <Tooltip title={requestersText} placement='top'>
+                                <Typography variant='overline'>
+                                    {props.operation.on ? 'on' : 'off'}
+                                </Typography>
+                            </Tooltip>
+                        </Grid>
+                        <Grid
+                            size={2}
+                            sx={{ display: 'flex', justifyContent: 'center' }}
+                        >
                             <Box
                                 sx={{
-                                    width: 12,
-                                    height: 12,
+                                    width: '12px',
+                                    height: '12px',
                                     backgroundColor: props.operation.on ? 'green' : 'grey',
                                     borderRadius: '50%',
                                 }}
                             />
-                        </Stack>
-                    </Tooltip>
-                    <Switch
-                        checked={props.inUse}
-                        disabled={!isInUseButtonEnabled}
-                        size='small'
-                        onChange={() => {
-                            setIsInUseButtonEnabled(false);
-                            onClickSetInUse(props.inUse);
-                        }}
-                    />
-                </Stack>
+                        </Grid>
+                        <Grid
+                            size={4.5}
+                            sx={{ display: 'flex', justifyContent: 'flex-end' }}
+                        >
+                            <Switch
+                                checked={props.inUse}
+                                disabled={!isInUseButtonEnabled}
+                                size='small'
+                                onChange={() => {
+                                    setIsInUseButtonEnabled(false);
+                                    onClickSetInUse(props.inUse);
+                                }}
+                            />
+                        </Grid>
+                    </Grid>
+                    <Grid
+                        container
+                        size={12}
+                        sx={{ display: 'flex', alignItems: 'center' }}
+                    >
+                        <Grid
+                            size={5.5}
+                            sx={{ display: 'flex', justifyContent: 'flex-start' }}
+                        >
+                            <Tooltip title={lockText} placement='top'>
+                                <Typography variant='overline'>
+                                    {props.hasLock ? 'LOCKED' : 'OPEN'}
+                                </Typography>
+                            </Tooltip>
+                        </Grid>
+                        <Grid
+                            size={2}
+                            sx={{ display: 'flex', justifyContent: 'center' }}
+                        >
+                            {props.hasLock ? (
+                                <LockIcon fontSize='small' />
+                            ) : (
+                                <LockOpenIcon fontSize='small' />
+                            )}
+                        </Grid>
+                        <Grid
+                            size={4.5}
+                            sx={{ display: 'flex', justifyContent: 'flex-end' }}
+                        >
+                            <Switch
+                                checked={props.hasLock}
+                                disabled={!isLockButtonEnabled}
+                                size='small'
+                                onChange={() => {
+                                    setIsLockButtonEnabled(false);
+                                    if (props.hasLock) {
+                                        onClickReleaseLock();
+                                    } else {
+                                        onClickTryLock();
+                                    }
+                                }}
+                            />
+                        </Grid>
+                    </Grid>
+                </Grid>
             </Stack>
             <div style={{ display: props.inUse ? 'block' : 'none' }}>
                 <button onClick={() => setShouldUpdatePlot(!shouldUpdatePlot)}>
@@ -321,22 +394,6 @@ const Channel = (props: ChannelInfo) => {
                         'No measurement'
                     )}
                 </h1>
-            </div>
-            <div className='channel-lock-container'>
-                <span>{props.lock.locked ? `Locked by ${props.lock.owner}` : 'Open'}</span>
-                <button
-                    disabled={!isLockButtonEnabled}
-                    onClick={() => {
-                        setIsLockButtonEnabled(false);
-                        if (props.hasLock) {
-                            onClickReleaseLock();
-                        } else {
-                            onClickTryLock();
-                        }
-                    }}
-                >
-                    {props.hasLock ? 'Release' : 'Acquire'}
-                </button>
             </div>
             <Stack
                 direction='row'
