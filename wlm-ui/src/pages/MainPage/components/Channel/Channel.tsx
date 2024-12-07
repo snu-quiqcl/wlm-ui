@@ -25,7 +25,6 @@ import {
     channelListActions, OperationType, SettingType, MeasurementType, LockType, ChannelInfo,
     postInUse, postSetting, tryLock, releaseLock,
 } from '../../../../store/slices/channel/channel';
-import './Channel.scss';
 
 const TIME_RANGE = 30 * 1000;
 
