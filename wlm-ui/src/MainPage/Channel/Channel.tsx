@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { AppDispatch } from '../../store';
@@ -38,9 +38,9 @@ const Channel = (props: IProps) => {
             `${process.env.REACT_APP_WEBSOCKET_URL}/measurement/${channel}/`);
 
         socket.onmessage = event => {
-            const data = JSON.parse(event.data) as MeasurementType;
-            dispatch(channelListActions.fetchMeasurement(
-                { channel: channel, measurement: data }));
+            const data = JSON.parse(event.data) as MeasurementType | MeasurementType[];
+            dispatch(channelListActions.fetchMeasurements(
+                { channel: channel, measurements: data }));
         };
 
         return () => socket.close();

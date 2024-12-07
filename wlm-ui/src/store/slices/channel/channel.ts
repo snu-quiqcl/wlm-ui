@@ -94,13 +94,18 @@ export const channelListSlice = createSlice({
                 info.setting.period = period;
             }
         },
-        fetchMeasurement: (
+        fetchMeasurements: (
             state,
-            action: PayloadAction<Pick<ChannelType, 'channel'> & { measurement: MeasurementType }>
+            action: PayloadAction<
+                Pick<ChannelType, 'channel'> & { measurements: MeasurementType | MeasurementType[] }>
         ) => {
-            const { channel, measurement } = action.payload;
+            const { channel, measurements } = action.payload;
             const info = getChannelInfoWithException(state, channel);
-            info.measurements.push(measurement);
+            if (Array.isArray(measurements)) {
+                info.measurements.push(...measurements);
+            } else {
+                info.measurements.push(measurements);
+            }
         },
         removeOldMeasurements: (state, action: PayloadAction<Pick<ChannelType, 'channel'>>) => {
             const info = getChannelInfoWithException(state, action.payload.channel);
