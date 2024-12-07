@@ -8,6 +8,7 @@ import FormControl from '@mui/material/FormControl';
 import Grid from '@mui/material/Grid2';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import Slider from '@mui/material/Slider';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
@@ -46,9 +47,9 @@ const Channel = (props: ChannelInfo) => {
     const [latestMeasurementText, setLatestMeasurementText] = useState<string>('');
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [recentMeasurements, setRecentMeasurements] = useState<
-    { x: Date, y: number | null }[]>([]);
-    const [timeWindow, setTimeWindow] = useState<{ min: Date, max: Date }>(
-        { min: new Date(Date.now() - TIME_RANGE), max: new Date() });
+        { x: Date, y: number | null }[]>([]);
+    const [timeWindow, setTimeWindow] = useState<number[]>([Date.now() - TIME_RANGE, Date.now()]);
+    const [timeSliderRange, setTimeSliderRange] = useState<number[]>([]);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
     const canUpdateSettings = !props.lock.locked || (props.hasLock && isLockButtonEnabled);
     const measurementsRef = useRef(props.measurements);
@@ -145,8 +146,8 @@ const Channel = (props: ChannelInfo) => {
 
         if (shouldUpdatePlot) {
             interval = setInterval(() => {
-                const now = new Date();
-                const cutoffTime = new Date(now.getTime() - TIME_RANGE);
+                const now = Date.now();
+                const cutoffTime = new Date(now - TIME_RANGE);
 
                 setRecentMeasurements(measurementsRef.current.filter(measurement => (
                     new Date(measurement.measuredAt) > cutoffTime
@@ -155,7 +156,7 @@ const Channel = (props: ChannelInfo) => {
                     y: measurement.frequency,
                 })));
 
-                setTimeWindow({ min: cutoffTime, max: now });
+                setTimeWindow([cutoffTime.getTime(), now]);
             }, 100);
         } else {
             clearInterval(interval);
@@ -374,83 +375,89 @@ const Channel = (props: ChannelInfo) => {
                     sx={{ marginTop: 1 }}
                 >
                     <Stack
-                        direction='row'
-                        sx={{ justifyContent: 'flex-start', alignItems: 'center', gap: 2 }}
+                        sx={{ gap: 2 }}
                     >
-                        <Typography
-                            variant='subtitle1'
-                            sx={{ width: '130px', textAlign: 'left' }}
-                        >
-                            {latestMeasurementText}
-                        </Typography>
                         <Stack
                             direction='row'
-                            sx={{ alignItems: 'center', gap: 1 }}
+                            sx={{ justifyContent: 'flex-start', alignItems: 'center', gap: 2 }}
                         >
-                            <Typography variant='body2'>
-                                Live
+                            <Typography
+                                variant='subtitle1'
+                                sx={{ width: '130px', textAlign: 'left' }}
+                            >
+                                {latestMeasurementText}
                             </Typography>
-                            <Switch
-                                checked={shouldUpdatePlot}
-                                size='small'
-                                onChange={() => setShouldUpdatePlot(!shouldUpdatePlot)}
-                            />
+                            <Stack
+                                direction='row'
+                                sx={{ alignItems: 'center', gap: 1 }}
+                            >
+                                <Typography variant='body2'>
+                                    Live
+                                </Typography>
+                                <Switch
+                                    checked={shouldUpdatePlot}
+                                    size='small'
+                                    onChange={() => setShouldUpdatePlot(!shouldUpdatePlot)}
+                                />
+                            </Stack>
                         </Stack>
+                        <Line
+                            data={[
+                                {
+                                    id: 'measurement',
+                                    data: recentMeasurements,
+                                },
+                            ]}
+                            xScale={{
+                                type: 'time',
+                                precision: 'millisecond',
+                                min: new Date(timeWindow[0]),
+                                max: new Date(timeWindow[1]),
+                            }}
+                            xFormat='time:%M:%S.%L'
+                            yScale={{
+                                type: 'linear',
+                                min: 'auto',
+                                max: 'auto',
+                                nice: true,
+                            }}
+                            yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
+                            width={450}
+                            height={300}
+                            margin={{
+                                top: 10,
+                                right: 30,
+                                bottom: 30,
+                                left: 80,
+                            }}
+                            curve='monotoneX'
+                            lineWidth={2}
+                            enablePoints
+                            pointSize={8}
+                            pointColor={{ from: 'color' }}
+                            pointBorderWidth={1}
+                            pointBorderColor='#fff'
+                            enableGridX
+                            gridXValues='every 5 seconds'
+                            enableGridY
+                            axisBottom={{
+                                format: '%M:%S',
+                                tickValues: 'every 5 seconds',
+                            }}
+                            axisLeft={{
+                                format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
+                                legend: 'Frequency (MHz)',
+                                legendOffset: -70,
+                                legendPosition: 'middle',
+                            }}
+                            isInteractive
+                            enableSlices='x'
+                            enableCrosshair
+                            animate={false}
+                        />
+                        <Slider
+                        />
                     </Stack>
-                    <Line
-                        data={[
-                            {
-                                id: 'measurement',
-                                data: recentMeasurements,
-                            },
-                        ]}
-                        xScale={{
-                            type: 'time',
-                            precision: 'millisecond',
-                            min: timeWindow.min,
-                            max: timeWindow.max,
-                        }}
-                        xFormat='time:%M:%S.%L'
-                        yScale={{
-                            type: 'linear',
-                            min: 'auto',
-                            max: 'auto',
-                            nice: true,
-                        }}
-                        yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
-                        width={450}
-                        height={300}
-                        margin={{
-                            top: 30,
-                            right: 30,
-                            bottom: 30,
-                            left: 80,
-                        }}
-                        curve='monotoneX'
-                        lineWidth={2}
-                        enablePoints
-                        pointSize={8}
-                        pointColor={{ from: 'color' }}
-                        pointBorderWidth={1}
-                        pointBorderColor='#fff'
-                        enableGridX
-                        gridXValues='every 5 seconds'
-                        enableGridY
-                        axisBottom={{
-                            format: '%M:%S',
-                            tickValues: 'every 5 seconds',
-                        }}
-                        axisLeft={{
-                            format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
-                            legend: 'Frequency (MHz)',
-                            legendOffset: -70,
-                            legendPosition: 'middle',
-                        }}
-                        isInteractive
-                        enableSlices='x'
-                        enableCrosshair
-                        animate={false}
-                    />
                 </Collapse>
             </Stack>
             <Stack>
