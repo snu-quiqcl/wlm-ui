@@ -32,28 +32,26 @@ const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
-    [theme.breakpoints.up('sm')]: {
-        maxWidth: '450px',
-    },
     padding: theme.spacing(2),
     gap: theme.spacing(2),
     borderRadius: theme.spacing(1),
 }));
 
 const Channel = (props: ChannelInfo) => {
+    const [requestersText, setRequestersText] = useState<string>('');
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
-    const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
+    const [lockText, setLockText] = useState<string>('');
     const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
-    const canUpdateSettings = !props.lock.locked || (props.hasLock && isLockButtonEnabled);
-    const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
-    const measurementsRef = useRef(props.measurements);
+    const [isFrequencyOpen, setIsFrequencyOpen] = useState<boolean>(false);
+    const [latestMeasurementText, setLatestMeasurementText] = useState<string>('');
+    const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [recentMeasurements, setRecentMeasurements] = useState<
-        { x: Date, y: number | null }[]>([]);
+    { x: Date, y: number | null }[]>([]);
     const [timeWindow, setTimeWindow] = useState<{ min: Date, max: Date }>(
         { min: new Date(Date.now() - TIME_RANGE), max: new Date() });
-    const latestMeasurement = props.measurements.at(-1);
-    const [lockText, setLockText] = useState<string>('');
-    const [requestersText, setRequestersText] = useState<string>('');
+    const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
+    const canUpdateSettings = !props.lock.locked || (props.hasLock && isLockButtonEnabled);
+    const measurementsRef = useRef(props.measurements);
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
@@ -124,6 +122,22 @@ const Channel = (props: ChannelInfo) => {
 
     useEffect(() => {
         measurementsRef.current = props.measurements;
+        const latestMeasurement = props.measurements.at(-1);
+
+        if (latestMeasurement !== undefined) {
+            const { frequency, error } = latestMeasurement;
+            if (frequency !== null) {
+                setLatestMeasurementText(`${(frequency / 1e12).toFixed(6)} THz`);
+            } else if (error === 'over') {
+                setLatestMeasurementText('Overexposed');
+            } else if (error === 'under') {
+                setLatestMeasurementText('Underexposed');
+            } else {
+                setLatestMeasurementText('Error')
+            }
+        } else{
+            setLatestMeasurementText('');
+        }
     }, [props.measurements]);
 
     useEffect(() => {
@@ -217,7 +231,15 @@ const Channel = (props: ChannelInfo) => {
     };
 
     return (
-        <Card variant='outlined'>
+        <Card
+            variant='outlined'
+            sx={theme => ({
+                gap: 1,
+                [theme.breakpoints.up('sm')]: {
+                    maxWidth: isFrequencyOpen ? '500px' : '300px',
+                },
+            })}
+        >
             <Stack
                 direction='row'
                 sx={{ justifyContent: 'space-between', alignItems: 'center' }}
@@ -225,8 +247,12 @@ const Channel = (props: ChannelInfo) => {
                 <Stack
                     sx={{ alignItems: 'flex-start' }}
                 >
-                    <Typography component='h1' variant='h6'>
-                        CH {props.channel.channel}
+                    <Typography
+                        component='h1'
+                        variant='h6'
+                        sx={{ fontWeight: 'bold' }}
+                    >
+                        Channel {props.channel.channel}
                     </Typography>
                     <Typography component='h2' variant='subtitle1'>
                         {props.channel.name}
@@ -325,112 +351,109 @@ const Channel = (props: ChannelInfo) => {
                     </Grid>
                 </Grid>
             </Stack>
-            <div style={{ display: props.inUse ? 'block' : 'none' }}>
-                <button onClick={() => setShouldUpdatePlot(!shouldUpdatePlot)}>
-                    {shouldUpdatePlot ? 'Stop' : 'Start'}
-                </button>
-                <Line
-                    data={[
-                        {
-                            id: 'measurement',
-                            data: recentMeasurements,
-                        },
-                    ]}
-                    xScale={{
-                        type: 'time',
-                        precision: 'millisecond',
-                        min: timeWindow.min,
-                        max: timeWindow.max,
-                    }}
-                    xFormat='time:%M:%S.%L'
-                    yScale={{
-                        type: 'linear',
-                        min: 'auto',
-                        max: 'auto',
-                        nice: true,
-                    }}
-                    yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
-                    width={500}
-                    height={300}
-                    margin={{
-                        top: 30,
-                        right: 50,
-                        bottom: 30,
-                        left: 100,
-                    }}
-                    curve='monotoneX'
-                    lineWidth={2}
-                    enablePoints
-                    pointSize={8}
-                    pointColor={{ from: 'color' }}
-                    pointBorderWidth={1}
-                    pointBorderColor='#fff'
-                    enableGridX
-                    gridXValues='every 5 seconds'
-                    enableGridY
-                    axisBottom={{
-                        format: '%M:%S',
-                        tickValues: 'every 5 seconds',
-                    }}
-                    axisLeft={{
-                        format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
-                        legend: 'Frequency (MHz)',
-                        legendOffset: -70,
-                        legendPosition: 'middle',
-                    }}
-                    isInteractive
-                    enableSlices='x'
-                    enableCrosshair
-                    animate={false}
-                />
-                <h1>
-                    {latestMeasurement ? (
-                        latestMeasurement.frequency ? (
-                            `${(latestMeasurement.frequency / 1e12).toFixed(6)} THz`
-                        ) : (
-                            latestMeasurement.error
-                        )
-                    ) : (
-                        'No measurement'
-                    )}
-                </h1>
-            </div>
-            <Stack
-                direction='row'
-                sx={{ justifyContent: 'center', alignItems: 'center', gap: 4 }}
-            >
+            <Stack>
                 <Stack
                     direction='row'
-                    sx={{ alignItems: 'center', gap: 1 }}
+                    sx={{ justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                    <Typography
-                        variant='subtitle2'
-                        sx={{ fontWeight: 'bold' }}
+                    <Typography variant='subtitle2'>
+                        Frequency
+                    </Typography>
+                    <IconButton
+                        onClick={() => setIsFrequencyOpen(!isFrequencyOpen)}
+                        sx={{
+                            transform: isFrequencyOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.3s ease',
+                        }}
                     >
-                        Exp. time
-                    </Typography>
-                    <Typography variant='body2'>
-                        {props.setting.exposure * 1e3} ms
-                    </Typography>
+                        <ExpandMoreIcon />
+                    </IconButton>
                 </Stack>
-                <Stack
-                    direction='row'
-                    sx={{ alignItems: 'center', gap: 1 }}
+                <Collapse
+                    in={isFrequencyOpen}
+                    sx={{ marginTop: 1 }}
                 >
-                    <Typography
-                        variant='subtitle2'
-                        sx={{ fontWeight: 'bold' }}
+                    <Stack
+                        direction='row'
+                        sx={{ justifyContent: 'flex-start', alignItems: 'center', gap: 2 }}
                     >
-                        Period
-                    </Typography>
-                    <Typography variant='body2'>
-                        {props.setting.period} s
-                    </Typography>
-                </Stack>
+                        <Typography
+                            variant='subtitle1'
+                            sx={{ width: '130px', textAlign: 'left' }}
+                        >
+                            {latestMeasurementText}
+                        </Typography>
+                        <Stack
+                            direction='row'
+                            sx={{ alignItems: 'center', gap: 1 }}
+                        >
+                            <Typography variant='body2'>
+                                Live
+                            </Typography>
+                            <Switch
+                                checked={shouldUpdatePlot}
+                                size='small'
+                                onChange={() => setShouldUpdatePlot(!shouldUpdatePlot)}
+                            />
+                        </Stack>
+                    </Stack>
+                    <Line
+                        data={[
+                            {
+                                id: 'measurement',
+                                data: recentMeasurements,
+                            },
+                        ]}
+                        xScale={{
+                            type: 'time',
+                            precision: 'millisecond',
+                            min: timeWindow.min,
+                            max: timeWindow.max,
+                        }}
+                        xFormat='time:%M:%S.%L'
+                        yScale={{
+                            type: 'linear',
+                            min: 'auto',
+                            max: 'auto',
+                            nice: true,
+                        }}
+                        yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
+                        width={450}
+                        height={300}
+                        margin={{
+                            top: 30,
+                            right: 30,
+                            bottom: 30,
+                            left: 80,
+                        }}
+                        curve='monotoneX'
+                        lineWidth={2}
+                        enablePoints
+                        pointSize={8}
+                        pointColor={{ from: 'color' }}
+                        pointBorderWidth={1}
+                        pointBorderColor='#fff'
+                        enableGridX
+                        gridXValues='every 5 seconds'
+                        enableGridY
+                        axisBottom={{
+                            format: '%M:%S',
+                            tickValues: 'every 5 seconds',
+                        }}
+                        axisLeft={{
+                            format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
+                            legend: 'Frequency (MHz)',
+                            legendOffset: -70,
+                            legendPosition: 'middle',
+                        }}
+                        isInteractive
+                        enableSlices='x'
+                        enableCrosshair
+                        animate={false}
+                    />
+                </Collapse>
             </Stack>
-            <Stack
-                sx={{ gap: 0 }}
-            >
+            <Stack>
                 <Stack
                     direction='row'
                     sx={{ justifyContent: 'space-between', alignItems: 'center' }}
@@ -448,86 +471,132 @@ const Channel = (props: ChannelInfo) => {
                         <ExpandMoreIcon />
                     </IconButton>
                 </Stack>
-                <Collapse in={isSettingOpen}>
+                <Collapse
+                    in={isSettingOpen}
+                    sx={{ marginTop: 1 }}
+                >
                     <Stack
-                        direction='row'
-                        sx={{ justifyContent: 'space-between', alignItems: 'flex-end', gap: 2 }}
+                        sx={{ gap: 1 }}
                     >
-                        <Box
-                            component='form'
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                handleSetting({ exposure: getExposure() });
-                            }}
-                            sx={{ width: '40%' }}
+                        <Stack
+                            direction='row'
+                            sx={{ justifyContent: 'center', alignItems: 'center', gap: 4 }}
                         >
-                            <FormControl>
-                                <TextField
-                                    id='exposure'
-                                    label='Exposure'
-                                    placeholder='100'
-                                    variant='standard'
-                                    size='small'
-                                    autoFocus
-                                    fullWidth
-                                    slotProps={{
-                                        htmlInput: { style: { fontSize: '0.8rem' } },
-                                        inputLabel: { style: { fontSize: '0.8rem' } },
-                                        input: {
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <Typography sx={{ fontSize: '0.8rem' }}>
-                                                        ms
-                                                    </Typography>
-                                                </InputAdornment>
-                                            ),
-                                        },
-                                    }}
-                                />
-                            </FormControl>
-                        </Box>
-                        <Box
-                            component='form'
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                handleSetting({ period: getPeriod() });
-                            }}
-                            sx={{ width: '40%' }}
-                        >
-                            <FormControl>
-                                <TextField
-                                    id='period'
-                                    label='Period'
-                                    placeholder='1'
-                                    variant='standard'
-                                    size='small'
-                                    autoFocus
-                                    fullWidth
-                                    slotProps={{
-                                        htmlInput: { style: { fontSize: '0.8rem' } },
-                                        inputLabel: { style: { fontSize: '0.8rem' } },
-                                        input: {
-                                            endAdornment:
-                                                <InputAdornment position="end">
-                                                    <Typography sx={{ fontSize: '0.8rem' }}>
-                                                        s
-                                                    </Typography>
-                                                </InputAdornment>,
-                                        },
-                                    }}
-                                />
-                            </FormControl>
-                        </Box>
-                        <Button
-                            variant='text'
-                            size='small'
-                            sx={{ fontSize: '0.8rem' }}
-                            onClick={() => {
-                                handleSetting({ exposure: getExposure(), period: getPeriod() });
+                            <Stack
+                                direction='row'
+                                sx={{ alignItems: 'center', gap: 1 }}
+                            >
+                                <Typography
+                                    variant='subtitle2'
+                                    sx={{ fontWeight: 'bold' }}
+                                >
+                                    Exp. time
+                                </Typography>
+                                <Typography variant='body2'>
+                                    {props.setting.exposure * 1e3} ms
+                                </Typography>
+                            </Stack>
+                            <Stack
+                                direction='row'
+                                sx={{ alignItems: 'center', gap: 1 }}
+                            >
+                                <Typography
+                                    variant='subtitle2'
+                                    sx={{ fontWeight: 'bold' }}
+                                >
+                                    Period
+                                </Typography>
+                                <Typography variant='body2'>
+                                    {props.setting.period} s
+                                </Typography>
+                            </Stack>
+                        </Stack>
+                        <Stack
+                            direction='row'
+                            sx={{
+                                justifyContent: 'space-between',
+                                alignItems: 'flex-end',
+                                gap: 2,
+                                pointerEvents: canUpdateSettings ? 'auto' : 'none',
+                                opacity: canUpdateSettings ? 1 : 0.5,
                             }}
                         >
-                            APPLY
-                        </Button>
+                            <Box
+                                component='form'
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleSetting({ exposure: getExposure() });
+                                }}
+                                sx={{ width: '40%' }}
+                            >
+                                <FormControl>
+                                    <TextField
+                                        id='exposure'
+                                        label='Exposure'
+                                        placeholder='100'
+                                        variant='standard'
+                                        size='small'
+                                        autoFocus
+                                        fullWidth
+                                        slotProps={{
+                                            htmlInput: { style: { fontSize: '0.8rem' } },
+                                            inputLabel: { style: { fontSize: '0.8rem' } },
+                                            input: {
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <Typography sx={{ fontSize: '0.8rem' }}>
+                                                            ms
+                                                        </Typography>
+                                                    </InputAdornment>
+                                                ),
+                                            },
+                                        }}
+                                    />
+                                </FormControl>
+                            </Box>
+                            <Box
+                                component='form'
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleSetting({ period: getPeriod() });
+                                }}
+                                sx={{ width: '40%' }}
+                            >
+                                <FormControl>
+                                    <TextField
+                                        id='period'
+                                        label='Period'
+                                        placeholder='1'
+                                        variant='standard'
+                                        size='small'
+                                        autoFocus
+                                        fullWidth
+                                        slotProps={{
+                                            htmlInput: { style: { fontSize: '0.8rem' } },
+                                            inputLabel: { style: { fontSize: '0.8rem' } },
+                                            input: {
+                                                endAdornment:
+                                                    <InputAdornment position="end">
+                                                        <Typography sx={{ fontSize: '0.8rem' }}>
+                                                            s
+                                                        </Typography>
+                                                    </InputAdornment>,
+                                            },
+                                        }}
+                                    />
+                                </FormControl>
+                            </Box>
+                            <Button
+                                variant='contained'
+                                size='small'
+                                sx={{ fontSize: '0.8rem', marginBottom: 0.3, padding: 0 }}
+                                onClick={() => {
+                                    handleSetting({ exposure: getExposure(), period: getPeriod() });
+                                }}
+                            >
+                                APPLY
+                            </Button>
+                        </Stack>
                     </Stack>
                 </Collapse>
             </Stack>
