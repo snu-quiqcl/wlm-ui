@@ -495,6 +495,76 @@ const Channel = (props: ChannelInfo) => {
                             }}
                             isInteractive
                             enableSlices='x'
+                            sliceTooltip={({ slice }) => (
+                                <Card
+                                    sx={{ width: '160px', padding: 1 }}
+                                >
+                                    <Grid container>
+                                        <Grid
+                                            container
+                                            size={12}
+                                            sx={{ alignItems: 'center' }}
+                                        >
+                                            <Grid
+                                                size={3.5}
+                                                sx={{
+                                                    display: 'flex',
+                                                    justifyContent: 'center'
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant='caption'
+                                                    sx={{ fontWeight: 'bold' }}
+                                                >
+                                                    Time
+                                                </Typography>
+                                            </Grid>
+                                            <Grid 
+                                                size={8.5}
+                                                sx={{
+                                                    display: 'flex',
+                                                    justifyContent: 'flex-start'
+                                                }}
+                                            >
+                                                <Typography variant='caption'>
+                                                    {slice.points[0].data.xFormatted}
+                                                </Typography>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid
+                                            container
+                                            size={12}
+                                            sx={{ alignItems: 'center' }}
+                                        >
+                                            <Grid
+                                                size={3.5}
+                                                sx={{
+                                                    display: 'flex',
+                                                    justifyContent: 'center'
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant='caption'
+                                                    sx={{ fontWeight: 'bold' }}
+                                                >
+                                                    Freq
+                                                </Typography>
+                                            </Grid>
+                                            <Grid 
+                                                size={8.5}
+                                                sx={{
+                                                    display: 'flex',
+                                                    justifyContent: 'flex-start'
+                                                }}
+                                            >
+                                                <Typography variant='caption'>
+                                                    {slice.points[0].data.yFormatted}
+                                                </Typography>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </Card>
+                            )}
                             enableCrosshair
                             animate={false}
                         />
@@ -508,7 +578,7 @@ const Channel = (props: ChannelInfo) => {
                             disableSwap
                             onChange={handleTimeSlider}
                             sx={{
-                                display: shouldUpdatePlot ? 'none' : 'block',
+                                display: isTimeSliderEnabled ? 'block' : 'none',
                                 width: '80%',
                             }}
                         />
