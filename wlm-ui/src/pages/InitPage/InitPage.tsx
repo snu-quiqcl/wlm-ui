@@ -85,12 +85,10 @@ const InitPage = () => {
                 <Stack
                     component='form'
                     direction='column'
+                    spacing={2}
                     noValidate
                     onSubmit={handleSignin}
-                    sx={{
-                        width: '100%',
-                        gap: 2,
-                    }}
+                    sx={{ width: '100%' }}
                 >
                     <FormControl>
                         <TextField
