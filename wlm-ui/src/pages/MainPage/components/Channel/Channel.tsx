@@ -46,27 +46,15 @@ const Channel = (props: ChannelInfo) => {
     const [isFrequencyOpen, setIsFrequencyOpen] = useState<boolean>(false);
     const [latestMeasurementText, setLatestMeasurementText] = useState<string>('');
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
-    const [recentMeasurements, setRecentMeasurements] = useState<
-        { x: Date, y: number | null }[]>([]);
+    const [measurements, setMeasurements] = useState<{ x: Date, y: number | null }[]>([]);
     const [timeWindow, setTimeWindow] = useState<number[]>([Date.now() - TIME_RANGE, Date.now()]);
+    const [isTimeSliderEnabled, setIsTimeSliderEnabled] = useState<boolean>(false);
     const [timeSliderRange, setTimeSliderRange] = useState<number[]>([]);
+    const [timeSliderMarks, setTimeSliderMarks] = useState<{ value: number, label: string }[]>([]);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
     const canUpdateSettings = !props.lock.locked || (props.hasLock && isLockButtonEnabled);
     const measurementsRef = useRef(props.measurements);
     const dispatch = useDispatch<AppDispatch>();
-
-    useEffect(() => {
-        const channel = props.channel.channel;
-        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/setting/${channel}/`);
-
-        socket.onmessage = event => {
-            const data = JSON.parse(event.data) as Partial<SettingType>;
-            dispatch(channelListActions.fetchSetting(
-                { channel: channel, ...data }));
-        };
-
-        return () => socket.close();
-    }, [dispatch, props.channel.channel]);
 
     useEffect(() => {
         const channel = props.channel.channel;
@@ -76,6 +64,19 @@ const Channel = (props: ChannelInfo) => {
             const data = JSON.parse(event.data) as OperationType;
             dispatch(channelListActions.fetchOperation(
                 { channel: channel, operation: data }));
+        };
+
+        return () => socket.close();
+    }, [dispatch, props.channel.channel]);
+
+    useEffect(() => {
+        const channel = props.channel.channel;
+        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/lock/${channel}/`);
+
+        socket.onmessage = event => {
+            const data = JSON.parse(event.data) as LockType;
+            dispatch(channelListActions.fetchLock(
+                { channel: channel, lock: data }));
         };
 
         return () => socket.close();
@@ -97,12 +98,12 @@ const Channel = (props: ChannelInfo) => {
 
     useEffect(() => {
         const channel = props.channel.channel;
-        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/lock/${channel}/`);
+        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/setting/${channel}/`);
 
         socket.onmessage = event => {
-            const data = JSON.parse(event.data) as LockType;
-            dispatch(channelListActions.fetchLock(
-                { channel: channel, lock: data }));
+            const data = JSON.parse(event.data) as Partial<SettingType>;
+            dispatch(channelListActions.fetchSetting(
+                { channel: channel, ...data }));
         };
 
         return () => socket.close();
@@ -145,42 +146,48 @@ const Channel = (props: ChannelInfo) => {
         let interval: NodeJS.Timer | undefined;
 
         if (shouldUpdatePlot) {
+            setIsTimeSliderEnabled(false);
+
             interval = setInterval(() => {
                 const now = Date.now();
-                const cutoffTime = new Date(now - TIME_RANGE);
-
-                setRecentMeasurements(measurementsRef.current.filter(measurement => (
-                    new Date(measurement.measuredAt) > cutoffTime
-                )).map(measurement => ({
-                    x: new Date(measurement.measuredAt),
-                    y: measurement.frequency,
-                })));
-
-                setTimeWindow([cutoffTime.getTime(), now]);
+                const cutoffTime = new Date(now - TIME_RANGE).getTime();
+                setTimeWindow([cutoffTime, now]);
             }, 100);
         } else {
             clearInterval(interval);
+
+            if (measurementsRef.current.length) {
+                const startTime = new Date(measurementsRef.current[0].measuredAt).getTime();
+                const endTime = new Date(measurementsRef.current.at(-1)!.measuredAt).getTime();
+                setIsTimeSliderEnabled(true);
+                setTimeSliderRange([startTime, endTime]);
+                const startTimeCeil = Math.ceil(startTime / TIME_RANGE) * TIME_RANGE;
+                const endTimeFloor = Math.floor(endTime / TIME_RANGE) * TIME_RANGE;
+                setTimeSliderMarks(Array.from(
+                    { length: (endTimeFloor - startTimeCeil) / TIME_RANGE + 1 },
+                    (_, i) => startTimeCeil + i * TIME_RANGE,
+                ).map(t => {
+                    if (t % (4 * TIME_RANGE)) {
+                        return { value: t, label: '' };
+                    } else {
+                        return { value: t, label: `${new Date(t).getMinutes()}` };
+                    }
+                }));
+            }
         }
 
         return () => clearInterval(interval);
     }, [shouldUpdatePlot]);
 
     useEffect(() => {
-        setShouldUpdatePlot(props.inUse);
-        setIsInUseButtonEnabled(true);
-    }, [props.inUse]);
-
-    useEffect(() => {
-        setIsLockButtonEnabled(true);
-    }, [props.hasLock]);
-
-    useEffect(() => {
-        if (props.lock.locked) {
-            setLockText(`${props.lock.owner} holds the lock.`);
-        } else {
-            setLockText('No one holds the lock.');
-        }
-    }, [props.lock]);
+        setMeasurements(measurementsRef.current.filter(measurement => {
+            const timestamp = new Date(measurement.measuredAt).getTime();
+            return timeWindow[0] < timestamp && timestamp < timeWindow[1];
+        }).map(measurement => ({
+            x: new Date(measurement.measuredAt),
+            y: measurement.frequency,
+        })));
+    }, [timeWindow]);
 
     useEffect(() => {
         const requesters = props.operation.requesters;
@@ -197,8 +204,52 @@ const Channel = (props: ChannelInfo) => {
         }
     }, [props.operation.requesters]);
 
+    useEffect(() => {
+        setIsInUseButtonEnabled(true);
+        setIsFrequencyOpen(props.inUse);
+        setShouldUpdatePlot(props.inUse);
+    }, [props.inUse]);
+
+    useEffect(() => {
+        if (props.lock.locked) {
+            setLockText(`${props.lock.owner} holds the lock.`);
+        } else {
+            setLockText('No one holds the lock.');
+        }
+    }, [props.lock]);
+
+    useEffect(() => {
+        setIsLockButtonEnabled(true);
+    }, [props.hasLock]);
+
     const onClickSetInUse = (inUse: boolean) => {
         dispatch(postInUse({ channel: props.channel.channel, inUse: inUse }));
+    };
+
+    const onClickTryLock = () => {
+        dispatch(tryLock({ channel: props.channel.channel }));
+    };
+
+    const onClickReleaseLock = () => {
+        dispatch(releaseLock({ channel: props.channel.channel }));
+    };
+
+    const handleTimeSlider = (event: Event, value: number | number[], activeThumb: number) => {
+        if (!Array.isArray(value)) {
+            return;
+        }
+        
+        if (value[1] - value[0] < TIME_RANGE) {
+            if (activeThumb === 0) {
+                const clamped = Math.min(value[0], timeSliderRange[1] - TIME_RANGE);
+                setTimeWindow([clamped, clamped + TIME_RANGE]);
+            } else {
+                const clamped = Math.max(value[1], timeSliderRange[0] + TIME_RANGE);
+                setTimeWindow([clamped - TIME_RANGE, clamped]);
+            }
+        } else {
+            setTimeWindow(value);
+        }
     };
 
     const getExposure = () => {
@@ -221,14 +272,6 @@ const Channel = (props: ChannelInfo) => {
         if (setting.exposure || setting.period) {
             dispatch(postSetting({ channel: props.channel.channel, ...setting }));
         }
-    };
-
-    const onClickTryLock = () => {
-        dispatch(tryLock({ channel: props.channel.channel }));
-    };
-
-    const onClickReleaseLock = () => {
-        dispatch(releaseLock({ channel: props.channel.channel }));
     };
 
     return (
@@ -375,11 +418,13 @@ const Channel = (props: ChannelInfo) => {
                     sx={{ marginTop: 1 }}
                 >
                     <Stack
-                        sx={{ gap: 2 }}
+                        spacing={1}
+                        sx={{ alignItems: 'center' }}
                     >
                         <Stack
                             direction='row'
-                            sx={{ justifyContent: 'flex-start', alignItems: 'center', gap: 2 }}
+                            spacing={2}
+                            sx={{ justifyContent: 'flex-start', alignItems: 'center' }}
                         >
                             <Typography
                                 variant='subtitle1'
@@ -389,7 +434,8 @@ const Channel = (props: ChannelInfo) => {
                             </Typography>
                             <Stack
                                 direction='row'
-                                sx={{ alignItems: 'center', gap: 1 }}
+                                spacing={1}
+                                sx={{ alignItems: 'center' }}
                             >
                                 <Typography variant='body2'>
                                     Live
@@ -405,7 +451,7 @@ const Channel = (props: ChannelInfo) => {
                             data={[
                                 {
                                     id: 'measurement',
-                                    data: recentMeasurements,
+                                    data: measurements,
                                 },
                             ]}
                             xScale={{
@@ -433,16 +479,14 @@ const Channel = (props: ChannelInfo) => {
                             curve='monotoneX'
                             lineWidth={2}
                             enablePoints
-                            pointSize={8}
+                            pointSize={6}
                             pointColor={{ from: 'color' }}
                             pointBorderWidth={1}
                             pointBorderColor='#fff'
                             enableGridX
-                            gridXValues='every 5 seconds'
                             enableGridY
                             axisBottom={{
                                 format: '%M:%S',
-                                tickValues: 'every 5 seconds',
                             }}
                             axisLeft={{
                                 format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
@@ -456,6 +500,18 @@ const Channel = (props: ChannelInfo) => {
                             animate={false}
                         />
                         <Slider
+                            size='small'
+                            value={timeWindow}
+                            min={timeSliderRange[0]}
+                            max={timeSliderRange[1]}
+                            marks={timeSliderMarks}
+                            valueLabelDisplay='off'
+                            disableSwap
+                            onChange={handleTimeSlider}
+                            sx={{
+                                display: shouldUpdatePlot ? 'none' : 'block',
+                                width: '80%',
+                            }}
                         />
                     </Stack>
                 </Collapse>
@@ -483,15 +539,17 @@ const Channel = (props: ChannelInfo) => {
                     sx={{ marginTop: 1 }}
                 >
                     <Stack
-                        sx={{ gap: 1 }}
+                        spacing={1}
                     >
                         <Stack
                             direction='row'
-                            sx={{ justifyContent: 'center', alignItems: 'center', gap: 4 }}
+                            spacing={4}
+                            sx={{ justifyContent: 'center', alignItems: 'center' }}
                         >
                             <Stack
                                 direction='row'
-                                sx={{ alignItems: 'center', gap: 1 }}
+                                spacing={1}
+                                sx={{ alignItems: 'center' }}
                             >
                                 <Typography
                                     variant='subtitle2'
@@ -505,7 +563,8 @@ const Channel = (props: ChannelInfo) => {
                             </Stack>
                             <Stack
                                 direction='row'
-                                sx={{ alignItems: 'center', gap: 1 }}
+                                spacing={1}
+                                sx={{ alignItems: 'center' }}
                             >
                                 <Typography
                                     variant='subtitle2'
@@ -520,10 +579,10 @@ const Channel = (props: ChannelInfo) => {
                         </Stack>
                         <Stack
                             direction='row'
+                            spacing={2}
                             sx={{
                                 justifyContent: 'space-between',
                                 alignItems: 'flex-end',
-                                gap: 2,
                                 pointerEvents: canUpdateSettings ? 'auto' : 'none',
                                 opacity: canUpdateSettings ? 1 : 0.5,
                             }}
