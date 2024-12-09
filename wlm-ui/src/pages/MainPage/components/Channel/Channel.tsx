@@ -54,6 +54,8 @@ const Channel = (props: ChannelInfo) => {
     const [timeSliderMarks, setTimeSliderMarks] = useState<{ value: number, label: string }[]>([]);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
     const canUpdateSettings = !props.lock.locked || (props.hasLock && isLockButtonEnabled);
+    const exposureId = `channel-${props.channel.channel}-exposure`;
+    const periodId = `channel-${props.channel.channel}-period`;
     const measurementsRef = useRef(props.measurements);
     const dispatch = useDispatch<AppDispatch>();
 
@@ -254,7 +256,7 @@ const Channel = (props: ChannelInfo) => {
     };
 
     const getExposure = () => {
-        const exposureText = document.getElementById('exposure') as HTMLInputElement;
+        const exposureText = document.getElementById(exposureId) as HTMLInputElement;
         if (!exposureText.value) {
             return;
         }
@@ -262,7 +264,7 @@ const Channel = (props: ChannelInfo) => {
     };
 
     const getPeriod = () => {
-        const periodText = document.getElementById('period') as HTMLInputElement;
+        const periodText = document.getElementById(periodId) as HTMLInputElement;
         if (!periodText.value) {
             return;
         }
@@ -668,7 +670,7 @@ const Channel = (props: ChannelInfo) => {
                             >
                                 <FormControl>
                                     <TextField
-                                        id='exposure'
+                                        id={exposureId}
                                         label='Exposure'
                                         placeholder='100'
                                         variant='standard'
@@ -701,7 +703,7 @@ const Channel = (props: ChannelInfo) => {
                             >
                                 <FormControl>
                                     <TextField
-                                        id='period'
+                                        id={periodId}
                                         label='Period'
                                         placeholder='1'
                                         variant='standard'
