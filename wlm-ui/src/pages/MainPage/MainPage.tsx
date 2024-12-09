@@ -1,4 +1,5 @@
 import React from 'react';
+import Stack from '@mui/material/Stack';
 
 import AppNavBar from './components/AppNavBar/AppNavBar';
 import ChannelList from './components/ChannelList/ChannelList';
@@ -6,11 +7,19 @@ import EventList from './components/EventList/EventList';
 
 const MainPage = () => {
     return (
-        <div>
+        <Stack
+            spacing={3}
+            sx={{ paddingBottom: 3 }}
+        >
             <AppNavBar />
-            <ChannelList />
-            <EventList />
-        </div>
+            <Stack
+                spacing={4}
+                sx={{ paddingX: 3 }}
+            >
+                <ChannelList />
+                <EventList />
+            </Stack>
+        </Stack>
     );
 };
 
