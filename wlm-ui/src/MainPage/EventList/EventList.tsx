@@ -13,8 +13,8 @@ const EventList = () => {
         const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/event/`);
 
         socket.onmessage = event => {
-            const data = JSON.parse(event.data) as EventType;
-            dispatch(eventListActions.fetchEvent({ event: data }));
+            const data = JSON.parse(event.data) as EventType | EventType[];
+            dispatch(eventListActions.fetchEvents({ events: data }));
         };
 
         return () => socket.close();
