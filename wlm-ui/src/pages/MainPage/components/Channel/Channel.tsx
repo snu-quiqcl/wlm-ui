@@ -283,7 +283,7 @@ const Channel = (props: ChannelInfo) => {
             sx={theme => ({
                 gap: 1,
                 [theme.breakpoints.up('sm')]: {
-                    maxWidth: isFrequencyOpen ? '500px' : '300px',
+                    width: isFrequencyOpen ? '500px' : '300px',
                 },
             })}
         >
@@ -363,7 +363,7 @@ const Channel = (props: ChannelInfo) => {
                         >
                             <Tooltip title={lockText} placement='top'>
                                 <Typography variant='overline'>
-                                    {props.hasLock ? 'LOCKED' : 'OPEN'}
+                                    {props.lock.locked ? 'LOCKED' : 'OPEN'}
                                 </Typography>
                             </Tooltip>
                         </Grid>
@@ -371,7 +371,7 @@ const Channel = (props: ChannelInfo) => {
                             size={2}
                             sx={{ display: 'flex', justifyContent: 'center' }}
                         >
-                            {props.hasLock ? (
+                            {props.lock.locked ? (
                                 <LockIcon fontSize='small' />
                             ) : (
                                 <LockOpenIcon fontSize='small' />
