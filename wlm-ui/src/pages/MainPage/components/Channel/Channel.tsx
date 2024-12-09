@@ -35,6 +35,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
     padding: theme.spacing(2),
     gap: theme.spacing(2),
     borderRadius: theme.spacing(1),
+    boxShadow: 'hsla(220, 10%, 5%, 0.02) 0px 5px 10px 0px',
 }));
 
 const Channel = (props: ChannelInfo) => {
@@ -729,7 +730,7 @@ const Channel = (props: ChannelInfo) => {
                                     handleSetting({ exposure: getExposure(), period: getPeriod() });
                                 }}
                             >
-                                APPLY
+                                apply
                             </Button>
                         </Stack>
                     </Stack>
