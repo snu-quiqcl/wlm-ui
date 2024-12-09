@@ -1,23 +1,32 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import AdjustIcon from '@mui/icons-material/Adjust';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 import { AppDispatch } from '../../../../store';
 import { fetchList, selectChannelList } from '../../../../store/slices/channel/channel';
-import { calibrate } from '../../../../store/slices/calibration/calibration';
+import { calibrate, selectCalibration } from '../../../../store/slices/calibration/calibration';
 import Channel from '../Channel/Channel';
 
 const ChannelList = () => {
+    const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
     const channelListState = useSelector(selectChannelList);
+    const calibrationState = useSelector(selectCalibration);
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
         dispatch(fetchList());
     }, [dispatch]);
+
+    useEffect(() => {
+        if (calibrationState.isCalibrated === false) {
+            setOpenSnackbar(true);
+        }
+    }, [calibrationState.isCalibrated]);
 
     const onClickRefreshChannelList = async () => {
         dispatch(fetchList());
@@ -66,6 +75,12 @@ const ChannelList = () => {
                     />
                 ))}
             </Box>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={3000}
+                message='Calibration failed'
+                onClose={() => setOpenSnackbar(false)}
+            />
         </Stack>
     );
 };
