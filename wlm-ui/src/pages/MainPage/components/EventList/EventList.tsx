@@ -1,11 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { DataGrid, GridRowsProp, GridColDef, GridToolbar } from '@mui/x-data-grid';
 
 import { AppDispatch } from '../../../../store';
 import { eventListActions, EventType, selectEventList } from '../../../../store/slices/event/event';
-import './EventList.scss';
 
 const EventList = () => {
+    const [rows, setRows] = useState<GridRowsProp>([]);
+    const columns: GridColDef[] = [
+        { field: 'occurredAt', type: 'dateTime', headerName: 'Timestamp', width: 200 },
+        {
+            field: 'category',
+            type: 'singleSelect',
+            valueOptions: [
+                'general', 'warning', 'error', 'user', 'operation', 'setting', 'lock', 'config'],
+            headerName: 'Category',
+            width: 150,
+        },
+        { field: 'content', type: 'string', headerName: 'Content', flex: 1, sortable: false },
+    ];
     const eventListState = useSelector(selectEventList);
     const dispatch = useDispatch<AppDispatch>();
 
@@ -20,24 +33,20 @@ const EventList = () => {
         return () => socket.close();
     }, [dispatch]);
 
-    return (
-        <div>
-            <h1>Event</h1>
-            <div className="event-container">
-                {eventListState.events.map((info, index) => {
-                    const event = info.event;
-                    const timestamp = new Date(event.occurredAt);
+    useEffect(() => {
+        setRows(eventListState.events.map((info, index) => {
+            const event = info.event;
+            return { id: index, ...event, occurredAt: new Date(event.occurredAt) };
+        }));
+    }, [eventListState.events]);
 
-                    return (
-                        <div key={index} className="event-component">
-                            <span style={{ flexBasis: '200px', textAlign: 'left' }}>{timestamp.toLocaleString()}</span>
-                            <span style={{ flexBasis: '100px', textAlign: 'left' }}>{event.category}</span>
-                            <span style={{ textAlign: 'left' }}>{event.content}</span>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
+    return (
+        <DataGrid
+            rows={rows}
+            columns={columns}
+            disableColumnSelector
+            slots={{ toolbar: GridToolbar }}
+        />
     );
 };
 
