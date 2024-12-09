@@ -15,10 +15,12 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import MuiCard from '@mui/material/Card';
+import DragHandleIcon from '@mui/icons-material/DragHandle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { styled } from '@mui/material/styles';
+import { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 
 import { AppDispatch } from '../../../../store';
 import {
@@ -33,12 +35,15 @@ const Card = styled(MuiCard)(({ theme }) => ({
     flexDirection: 'column',
     height: 'fit-content',
     padding: theme.spacing(2),
+    paddingBottom: theme.spacing(1),
     gap: theme.spacing(2),
     borderRadius: theme.spacing(1),
     boxShadow: 'hsla(220, 10%, 5%, 0.02) 0px 5px 10px 0px',
 }));
 
-const Channel = (props: ChannelInfo) => {
+type Props = ChannelInfo & { dragHandleProps: DraggableProvidedDragHandleProps | null };
+
+const Channel = (props: Props) => {
     const [requestersText, setRequestersText] = useState<string>('');
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [lockText, setLockText] = useState<string>('');
@@ -741,6 +746,14 @@ const Channel = (props: ChannelInfo) => {
                     </Stack>
                 </Collapse>
             </Stack>
+            <Box>
+                <IconButton
+                    size='small'
+                    {...props.dragHandleProps}
+                >
+                    <DragHandleIcon fontSize='small' />
+                </IconButton>
+            </Box>
         </Card>
     );
 };
