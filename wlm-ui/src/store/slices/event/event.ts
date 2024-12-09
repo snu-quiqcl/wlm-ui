@@ -24,9 +24,16 @@ export const EventListSlice = createSlice({
     name: 'event',
     initialState,
     reducers: {
-        fetchEvent: (state, action: PayloadAction<{ event: EventType }>) => {
-            const { event } = action.payload;
-            state.events = [{ event: event } as EventInfo, ...state.events];
+        fetchEvents: (state, action: PayloadAction<{ events: EventType | EventType[] }>) => {
+            const { events } = action.payload;
+            if (Array.isArray(events)) {
+                state.events = [
+                    ...events.reverse().map(event => (
+                        { event: event } as EventInfo
+                    )), ...state.events];
+            } else {
+                state.events = [{ event: events } as EventInfo, ...state.events];
+            }
         },
     },
 });
