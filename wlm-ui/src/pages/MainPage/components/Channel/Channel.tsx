@@ -32,6 +32,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
+    height: 'fit-content',
     padding: theme.spacing(2),
     gap: theme.spacing(2),
     borderRadius: theme.spacing(1),
