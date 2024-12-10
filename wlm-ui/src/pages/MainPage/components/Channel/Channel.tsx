@@ -8,6 +8,7 @@ import FormControl from '@mui/material/FormControl';
 import Grid from '@mui/material/Grid2';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import Skeleton from '@mui/material/Skeleton';
 import Slider from '@mui/material/Slider';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
@@ -44,6 +45,13 @@ const Card = styled(MuiCard)(({ theme }) => ({
 type Props = ChannelInfo & { dragHandleProps: DraggableProvidedDragHandleProps | null };
 
 const Channel = (props: Props) => {
+    const [isOperationSocketConnected, setIsOperationSocketConnected] = useState<boolean>(false);
+    const [isLockSocketConnected, setIsLockSocketConnected] = useState<boolean>(false);
+    const [isMeasurementSocketConnected,
+        setIsMeasurementSocketConnected] = useState<boolean>(false);
+    const [isSettingSocketConnected, setIsSettingSocketConnected] = useState<boolean>(false);
+    const areAllSocketsConnected = isOperationSocketConnected && isLockSocketConnected &&
+        isMeasurementSocketConnected && isSettingSocketConnected;
     const [requestersText, setRequestersText] = useState<string>('');
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [lockText, setLockText] = useState<string>('');
@@ -67,10 +75,18 @@ const Channel = (props: Props) => {
         const channel = props.channel.channel;
         const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/operation/${channel}/`);
 
+        socket.onopen = () => {
+            setIsOperationSocketConnected(true);
+        };
+
         socket.onmessage = event => {
             const data = JSON.parse(event.data) as OperationType;
             dispatch(channelListActions.fetchOperation(
                 { channel: channel, operation: data }));
+        };
+
+        socket.onclose = () => {
+            setIsOperationSocketConnected(false);
         };
 
         return () => socket.close();
@@ -80,10 +96,18 @@ const Channel = (props: Props) => {
         const channel = props.channel.channel;
         const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/lock/${channel}/`);
 
+        socket.onopen = () => {
+            setIsLockSocketConnected(true);
+        };
+
         socket.onmessage = event => {
             const data = JSON.parse(event.data) as LockType;
             dispatch(channelListActions.fetchLock(
                 { channel: channel, lock: data }));
+        };
+
+        socket.onclose = () => {
+            setIsOperationSocketConnected(false);
         };
 
         return () => socket.close();
@@ -94,10 +118,18 @@ const Channel = (props: Props) => {
         const socket = new WebSocket(
             `${process.env.REACT_APP_WEBSOCKET_URL}/measurement/${channel}/`);
 
+        socket.onopen = () => {
+            setIsMeasurementSocketConnected(true);
+        };
+
         socket.onmessage = event => {
             const data = JSON.parse(event.data) as MeasurementType | MeasurementType[];
             dispatch(channelListActions.fetchMeasurements(
                 { channel: channel, measurements: data }));
+        };
+
+        socket.onclose = () => {
+            setIsMeasurementSocketConnected(false);
         };
 
         return () => socket.close();
@@ -107,10 +139,18 @@ const Channel = (props: Props) => {
         const channel = props.channel.channel;
         const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/setting/${channel}/`);
 
+        socket.onopen = () => {
+            setIsSettingSocketConnected(true);
+        };
+
         socket.onmessage = event => {
             const data = JSON.parse(event.data) as Partial<SettingType>;
             dispatch(channelListActions.fetchSetting(
                 { channel: channel, ...data }));
+        };
+
+        socket.onclose = () => {
+            setIsSettingSocketConnected(false);
         };
 
         return () => socket.close();
@@ -310,442 +350,454 @@ const Channel = (props: Props) => {
                         {props.channel.name}
                     </Typography>
                 </Stack>
-                <Grid
-                    container
-                    sx={{ width: 140 }}
-                >
+                {areAllSocketsConnected ? (
                     <Grid
                         container
-                        size={12}
-                        sx={{ display: 'flex', alignItems: 'center' }}
+                        sx={{ width: 140 }}
                     >
                         <Grid
-                            size={5.5}
-                            sx={{ display: 'flex', justifyContent: 'flex-start' }}
+                            container
+                            size={12}
+                            sx={{ display: 'flex', alignItems: 'center' }}
                         >
-                            <Tooltip title={requestersText} placement='top'>
-                                <Typography variant='overline'>
-                                    {props.operation.on ? 'on' : 'off'}
-                                </Typography>
-                            </Tooltip>
-                        </Grid>
-                        <Grid
-                            size={2}
-                            sx={{ display: 'flex', justifyContent: 'center' }}
-                        >
-                            <Box
-                                sx={{
-                                    width: '12px',
-                                    height: '12px',
-                                    backgroundColor: props.operation.on ? 'green' : 'grey',
-                                    borderRadius: '50%',
-                                }}
-                            />
-                        </Grid>
-                        <Grid
-                            size={4.5}
-                            sx={{ display: 'flex', justifyContent: 'flex-end' }}
-                        >
-                            <Switch
-                                checked={props.inUse}
-                                disabled={!isInUseButtonEnabled}
-                                size='small'
-                                onChange={() => {
-                                    setIsInUseButtonEnabled(false);
-                                    onClickSetInUse(props.inUse);
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                    <Grid
-                        container
-                        size={12}
-                        sx={{ display: 'flex', alignItems: 'center' }}
-                    >
-                        <Grid
-                            size={5.5}
-                            sx={{ display: 'flex', justifyContent: 'flex-start' }}
-                        >
-                            <Tooltip title={lockText} placement='top'>
-                                <Typography variant='overline'>
-                                    {props.lock.locked ? 'LOCKED' : 'OPEN'}
-                                </Typography>
-                            </Tooltip>
-                        </Grid>
-                        <Grid
-                            size={2}
-                            sx={{ display: 'flex', justifyContent: 'center' }}
-                        >
-                            {props.lock.locked ? (
-                                <LockIcon fontSize='small' />
-                            ) : (
-                                <LockOpenIcon fontSize='small' />
-                            )}
-                        </Grid>
-                        <Grid
-                            size={4.5}
-                            sx={{ display: 'flex', justifyContent: 'flex-end' }}
-                        >
-                            <Switch
-                                checked={props.hasLock}
-                                disabled={!isLockButtonEnabled}
-                                size='small'
-                                onChange={() => {
-                                    setIsLockButtonEnabled(false);
-                                    if (props.hasLock) {
-                                        onClickReleaseLock();
-                                    } else {
-                                        onClickTryLock();
-                                    }
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </Grid>
-            </Stack>
-            <Stack>
-                <Stack
-                    direction='row'
-                    sx={{ justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                    <Typography variant='subtitle2'>
-                        Frequency
-                    </Typography>
-                    <IconButton
-                        onClick={() => setIsFrequencyOpen(!isFrequencyOpen)}
-                        sx={{
-                            transform: isFrequencyOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                            transition: 'transform 0.3s ease',
-                        }}
-                    >
-                        <ExpandMoreIcon />
-                    </IconButton>
-                </Stack>
-                <Collapse
-                    in={isFrequencyOpen}
-                    sx={{ marginTop: 1 }}
-                >
-                    <Stack
-                        spacing={1}
-                        sx={{ alignItems: 'center' }}
-                    >
-                        <Stack
-                            direction='row'
-                            spacing={2}
-                            sx={{ justifyContent: 'flex-start', alignItems: 'center' }}
-                        >
-                            <Typography
-                                variant='subtitle1'
-                                sx={{ width: '130px', textAlign: 'left' }}
+                            <Grid
+                                size={5.5}
+                                sx={{ display: 'flex', justifyContent: 'flex-start' }}
                             >
-                                {latestMeasurementText}
-                            </Typography>
-                            <Stack
-                                direction='row'
-                                spacing={1}
-                                sx={{ alignItems: 'center' }}
+                                <Tooltip title={requestersText} placement='top'>
+                                    <Typography variant='overline'>
+                                        {props.operation.on ? 'on' : 'off'}
+                                    </Typography>
+                                </Tooltip>
+                            </Grid>
+                            <Grid
+                                size={2}
+                                sx={{ display: 'flex', justifyContent: 'center' }}
                             >
-                                <Typography variant='body2'>
-                                    Live
-                                </Typography>
-                                <Switch
-                                    checked={shouldUpdatePlot}
-                                    size='small'
-                                    onChange={() => setShouldUpdatePlot(!shouldUpdatePlot)}
+                                <Box
+                                    sx={{
+                                        width: '12px',
+                                        height: '12px',
+                                        backgroundColor: props.operation.on ? 'green' : 'grey',
+                                        borderRadius: '50%',
+                                    }}
                                 />
-                            </Stack>
-                        </Stack>
-                        <Box
-                            sx={{ width: '90%', height: '300px' }}
+                            </Grid>
+                            <Grid
+                                size={4.5}
+                                sx={{ display: 'flex', justifyContent: 'flex-end' }}
+                            >
+                                <Switch
+                                    checked={props.inUse}
+                                    disabled={!isInUseButtonEnabled}
+                                    size='small'
+                                    onChange={() => {
+                                        setIsInUseButtonEnabled(false);
+                                        onClickSetInUse(props.inUse);
+                                    }}
+                                />
+                            </Grid>
+                        </Grid>
+                        <Grid
+                            container
+                            size={12}
+                            sx={{ display: 'flex', alignItems: 'center' }}
                         >
-                            <ResponsiveLine
-                                data={[
-                                    {
-                                        id: 'measurement',
-                                        data: measurements,
-                                    },
-                                ]}
-                                xScale={{
-                                    type: 'time',
-                                    precision: 'millisecond',
-                                    min: new Date(timeWindow[0]),
-                                    max: new Date(timeWindow[1]),
-                                }}
-                                xFormat='time:%M:%S.%L'
-                                yScale={{
-                                    type: 'linear',
-                                    min: 'auto',
-                                    max: 'auto',
-                                    nice: true,
-                                }}
-                                yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
-                                margin={{
-                                    top: 10,
-                                    right: 30,
-                                    bottom: 30,
-                                    left: 80,
-                                }}
-                                curve='monotoneX'
-                                lineWidth={2}
-                                enablePoints
-                                pointSize={6}
-                                pointColor={{ from: 'color' }}
-                                pointBorderWidth={1}
-                                pointBorderColor='#fff'
-                                enableGridX
-                                enableGridY
-                                axisBottom={{
-                                    format: '%M:%S',
-                                }}
-                                axisLeft={{
-                                    format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
-                                    legend: 'Frequency (MHz)',
-                                    legendOffset: -70,
-                                    legendPosition: 'middle',
-                                }}
-                                isInteractive
-                                enableSlices='x'
-                                sliceTooltip={({ slice }) => (
-                                    <Card
-                                        sx={{ width: '160px', padding: 1 }}
-                                    >
-                                        <Grid container>
-                                            <Grid
-                                                container
-                                                size={12}
-                                                sx={{ alignItems: 'center' }}
-                                            >
-                                                <Grid
-                                                    size={3.5}
-                                                    sx={{
-                                                        display: 'flex',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
-                                                    <Typography
-                                                        variant='caption'
-                                                        sx={{ fontWeight: 'bold' }}
-                                                    >
-                                                        Time
-                                                    </Typography>
-                                                </Grid>
-                                                <Grid 
-                                                    size={8.5}
-                                                    sx={{
-                                                        display: 'flex',
-                                                        justifyContent: 'flex-start'
-                                                    }}
-                                                >
-                                                    <Typography variant='caption'>
-                                                        {slice.points[0].data.xFormatted}
-                                                    </Typography>
-                                                </Grid>
-                                            </Grid>
-                                            <Grid
-                                                container
-                                                size={12}
-                                                sx={{ alignItems: 'center' }}
-                                            >
-                                                <Grid
-                                                    size={3.5}
-                                                    sx={{
-                                                        display: 'flex',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
-                                                    <Typography
-                                                        variant='caption'
-                                                        sx={{ fontWeight: 'bold' }}
-                                                    >
-                                                        Freq
-                                                    </Typography>
-                                                </Grid>
-                                                <Grid 
-                                                    size={8.5}
-                                                    sx={{
-                                                        display: 'flex',
-                                                        justifyContent: 'flex-start'
-                                                    }}
-                                                >
-                                                    <Typography variant='caption'>
-                                                        {slice.points[0].data.yFormatted}
-                                                    </Typography>
-                                                </Grid>
-                                            </Grid>
-                                        </Grid>
-                                    </Card>
+                            <Grid
+                                size={5.5}
+                                sx={{ display: 'flex', justifyContent: 'flex-start' }}
+                            >
+                                <Tooltip title={lockText} placement='top'>
+                                    <Typography variant='overline'>
+                                        {props.lock.locked ? 'LOCKED' : 'OPEN'}
+                                    </Typography>
+                                </Tooltip>
+                            </Grid>
+                            <Grid
+                                size={2}
+                                sx={{ display: 'flex', justifyContent: 'center' }}
+                            >
+                                {props.lock.locked ? (
+                                    <LockIcon fontSize='small' />
+                                ) : (
+                                    <LockOpenIcon fontSize='small' />
                                 )}
-                                enableCrosshair
-                                animate={false}
-                            />
-                        </Box>
-                        <Slider
-                            size='small'
-                            value={timeWindow}
-                            min={timeSliderRange[0]}
-                            max={timeSliderRange[1]}
-                            marks={timeSliderMarks}
-                            valueLabelDisplay='off'
-                            disableSwap
-                            onChange={handleTimeSlider}
-                            sx={{
-                                display: isTimeSliderEnabled ? 'block' : 'none',
-                                width: '80%',
-                            }}
-                        />
-                    </Stack>
-                </Collapse>
+                            </Grid>
+                            <Grid
+                                size={4.5}
+                                sx={{ display: 'flex', justifyContent: 'flex-end' }}
+                            >
+                                <Switch
+                                    checked={props.hasLock}
+                                    disabled={!isLockButtonEnabled}
+                                    size='small'
+                                    onChange={() => {
+                                        setIsLockButtonEnabled(false);
+                                        if (props.hasLock) {
+                                            onClickReleaseLock();
+                                        } else {
+                                            onClickTryLock();
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                ) : (
+                    <Skeleton variant='rounded' width={140} height={50} />
+                )}
             </Stack>
-            <Stack>
-                <Stack
-                    direction='row'
-                    sx={{ justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                    <Typography variant='subtitle2'>
-                        Settings
-                    </Typography>
-                    <IconButton
-                        onClick={() => setIsSettingOpen(!isSettingOpen)}
-                        sx={{
-                            transform: isSettingOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                            transition: 'transform 0.3s ease',
-                        }}
-                    >
-                        <ExpandMoreIcon />
-                    </IconButton>
-                </Stack>
-                <Collapse
-                    in={isSettingOpen}
-                    sx={{ marginTop: 1 }}
-                >
+            {areAllSocketsConnected ? (
+                <Stack>
                     <Stack
-                        spacing={1}
+                        direction='row'
+                        sx={{ justifyContent: 'space-between', alignItems: 'center' }}
                     >
-                        <Stack
-                            direction='row'
-                            spacing={4}
-                            sx={{ justifyContent: 'center', alignItems: 'center' }}
-                        >
-                            <Stack
-                                direction='row'
-                                spacing={1}
-                                sx={{ alignItems: 'center' }}
-                            >
-                                <Typography
-                                    variant='subtitle2'
-                                    sx={{ fontWeight: 'bold' }}
-                                >
-                                    Exp. time
-                                </Typography>
-                                <Typography variant='body2'>
-                                    {props.setting.exposure * 1e3} ms
-                                </Typography>
-                            </Stack>
-                            <Stack
-                                direction='row'
-                                spacing={1}
-                                sx={{ alignItems: 'center' }}
-                            >
-                                <Typography
-                                    variant='subtitle2'
-                                    sx={{ fontWeight: 'bold' }}
-                                >
-                                    Period
-                                </Typography>
-                                <Typography variant='body2'>
-                                    {props.setting.period} s
-                                </Typography>
-                            </Stack>
-                        </Stack>
-                        <Stack
-                            direction='row'
-                            spacing={2}
+                        <Typography variant='subtitle2'>
+                            Frequency
+                        </Typography>
+                        <IconButton
+                            onClick={() => setIsFrequencyOpen(!isFrequencyOpen)}
                             sx={{
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-end',
-                                pointerEvents: canUpdateSettings ? 'auto' : 'none',
-                                opacity: canUpdateSettings ? 1 : 0.5,
+                                transform: isFrequencyOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.3s ease',
                             }}
                         >
-                            <Box
-                                component='form'
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleSetting({ exposure: getExposure() });
-                                }}
-                                sx={{ width: '40%' }}
-                            >
-                                <FormControl>
-                                    <TextField
-                                        id={exposureId}
-                                        label='Exposure'
-                                        placeholder='100'
-                                        variant='standard'
-                                        size='small'
-                                        autoFocus
-                                        fullWidth
-                                        slotProps={{
-                                            htmlInput: { style: { fontSize: '0.8rem' } },
-                                            inputLabel: { style: { fontSize: '0.8rem' } },
-                                            input: {
-                                                endAdornment: (
-                                                    <InputAdornment position="end">
-                                                        <Typography sx={{ fontSize: '0.8rem' }}>
-                                                            ms
-                                                        </Typography>
-                                                    </InputAdornment>
-                                                ),
-                                            },
-                                        }}
-                                    />
-                                </FormControl>
-                            </Box>
-                            <Box
-                                component='form'
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleSetting({ period: getPeriod() });
-                                }}
-                                sx={{ width: '40%' }}
-                            >
-                                <FormControl>
-                                    <TextField
-                                        id={periodId}
-                                        label='Period'
-                                        placeholder='1'
-                                        variant='standard'
-                                        size='small'
-                                        autoFocus
-                                        fullWidth
-                                        slotProps={{
-                                            htmlInput: { style: { fontSize: '0.8rem' } },
-                                            inputLabel: { style: { fontSize: '0.8rem' } },
-                                            input: {
-                                                endAdornment:
-                                                    <InputAdornment position="end">
-                                                        <Typography sx={{ fontSize: '0.8rem' }}>
-                                                            s
-                                                        </Typography>
-                                                    </InputAdornment>,
-                                            },
-                                        }}
-                                    />
-                                </FormControl>
-                            </Box>
-                            <Button
-                                variant='contained'
-                                size='small'
-                                sx={{ fontSize: '0.8rem', marginBottom: 0.3, padding: 0 }}
-                                onClick={() => {
-                                    handleSetting({ exposure: getExposure(), period: getPeriod() });
-                                }}
-                            >
-                                apply
-                            </Button>
-                        </Stack>
+                            <ExpandMoreIcon />
+                        </IconButton>
                     </Stack>
-                </Collapse>
-            </Stack>
+                    <Collapse
+                        in={isFrequencyOpen}
+                        sx={{ marginTop: 1 }}
+                    >
+                        <Stack
+                            spacing={1}
+                            sx={{ alignItems: 'center' }}
+                        >
+                            <Stack
+                                direction='row'
+                                spacing={2}
+                                sx={{ justifyContent: 'flex-start', alignItems: 'center' }}
+                            >
+                                <Typography
+                                    variant='subtitle1'
+                                    sx={{ width: '130px', textAlign: 'left' }}
+                                >
+                                    {latestMeasurementText}
+                                </Typography>
+                                <Stack
+                                    direction='row'
+                                    spacing={1}
+                                    sx={{ alignItems: 'center' }}
+                                >
+                                    <Typography variant='body2'>
+                                        Live
+                                    </Typography>
+                                    <Switch
+                                        checked={shouldUpdatePlot}
+                                        size='small'
+                                        onChange={() => setShouldUpdatePlot(!shouldUpdatePlot)}
+                                    />
+                                </Stack>
+                            </Stack>
+                            <Box
+                                sx={{ width: '90%', height: '300px' }}
+                            >
+                                <ResponsiveLine
+                                    data={[
+                                        {
+                                            id: 'measurement',
+                                            data: measurements,
+                                        },
+                                    ]}
+                                    xScale={{
+                                        type: 'time',
+                                        precision: 'millisecond',
+                                        min: new Date(timeWindow[0]),
+                                        max: new Date(timeWindow[1]),
+                                    }}
+                                    xFormat='time:%M:%S.%L'
+                                    yScale={{
+                                        type: 'linear',
+                                        min: 'auto',
+                                        max: 'auto',
+                                        nice: true,
+                                    }}
+                                    yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
+                                    margin={{
+                                        top: 10,
+                                        right: 30,
+                                        bottom: 30,
+                                        left: 80,
+                                    }}
+                                    curve='monotoneX'
+                                    lineWidth={2}
+                                    enablePoints
+                                    pointSize={6}
+                                    pointColor={{ from: 'color' }}
+                                    pointBorderWidth={1}
+                                    pointBorderColor='#fff'
+                                    enableGridX
+                                    enableGridY
+                                    axisBottom={{
+                                        format: '%M:%S',
+                                    }}
+                                    axisLeft={{
+                                        format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
+                                        legend: 'Frequency (MHz)',
+                                        legendOffset: -70,
+                                        legendPosition: 'middle',
+                                    }}
+                                    isInteractive
+                                    enableSlices='x'
+                                    sliceTooltip={({ slice }) => (
+                                        <Card
+                                            sx={{ width: '160px', padding: 1 }}
+                                        >
+                                            <Grid container>
+                                                <Grid
+                                                    container
+                                                    size={12}
+                                                    sx={{ alignItems: 'center' }}
+                                                >
+                                                    <Grid
+                                                        size={3.5}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'center'
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            variant='caption'
+                                                            sx={{ fontWeight: 'bold' }}
+                                                        >
+                                                            Time
+                                                        </Typography>
+                                                    </Grid>
+                                                    <Grid 
+                                                        size={8.5}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'flex-start'
+                                                        }}
+                                                    >
+                                                        <Typography variant='caption'>
+                                                            {slice.points[0].data.xFormatted}
+                                                        </Typography>
+                                                    </Grid>
+                                                </Grid>
+                                                <Grid
+                                                    container
+                                                    size={12}
+                                                    sx={{ alignItems: 'center' }}
+                                                >
+                                                    <Grid
+                                                        size={3.5}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'center'
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            variant='caption'
+                                                            sx={{ fontWeight: 'bold' }}
+                                                        >
+                                                            Freq
+                                                        </Typography>
+                                                    </Grid>
+                                                    <Grid 
+                                                        size={8.5}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'flex-start'
+                                                        }}
+                                                    >
+                                                        <Typography variant='caption'>
+                                                            {slice.points[0].data.yFormatted}
+                                                        </Typography>
+                                                    </Grid>
+                                                </Grid>
+                                            </Grid>
+                                        </Card>
+                                    )}
+                                    enableCrosshair
+                                    animate={false}
+                                />
+                            </Box>
+                            <Slider
+                                size='small'
+                                value={timeWindow}
+                                min={timeSliderRange[0]}
+                                max={timeSliderRange[1]}
+                                marks={timeSliderMarks}
+                                valueLabelDisplay='off'
+                                disableSwap
+                                onChange={handleTimeSlider}
+                                sx={{
+                                    display: isTimeSliderEnabled ? 'block' : 'none',
+                                    width: '80%',
+                                }}
+                            />
+                        </Stack>
+                    </Collapse>
+                </Stack>
+            ) : (
+                <Skeleton variant='rounded' height={50} />
+            )}
+            {areAllSocketsConnected ? (
+                <Stack>
+                    <Stack
+                        direction='row'
+                        sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                        <Typography variant='subtitle2'>
+                            Settings
+                        </Typography>
+                        <IconButton
+                            onClick={() => setIsSettingOpen(!isSettingOpen)}
+                            sx={{
+                                transform: isSettingOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.3s ease',
+                            }}
+                        >
+                            <ExpandMoreIcon />
+                        </IconButton>
+                    </Stack>
+                    <Collapse
+                        in={isSettingOpen}
+                        sx={{ marginTop: 1 }}
+                    >
+                        <Stack
+                            spacing={1}
+                        >
+                            <Stack
+                                direction='row'
+                                spacing={4}
+                                sx={{ justifyContent: 'center', alignItems: 'center' }}
+                            >
+                                <Stack
+                                    direction='row'
+                                    spacing={1}
+                                    sx={{ alignItems: 'center' }}
+                                >
+                                    <Typography
+                                        variant='subtitle2'
+                                        sx={{ fontWeight: 'bold' }}
+                                    >
+                                        Exp. time
+                                    </Typography>
+                                    <Typography variant='body2'>
+                                        {props.setting.exposure * 1e3} ms
+                                    </Typography>
+                                </Stack>
+                                <Stack
+                                    direction='row'
+                                    spacing={1}
+                                    sx={{ alignItems: 'center' }}
+                                >
+                                    <Typography
+                                        variant='subtitle2'
+                                        sx={{ fontWeight: 'bold' }}
+                                    >
+                                        Period
+                                    </Typography>
+                                    <Typography variant='body2'>
+                                        {props.setting.period} s
+                                    </Typography>
+                                </Stack>
+                            </Stack>
+                            <Stack
+                                direction='row'
+                                spacing={2}
+                                sx={{
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-end',
+                                    pointerEvents: canUpdateSettings ? 'auto' : 'none',
+                                    opacity: canUpdateSettings ? 1 : 0.5,
+                                }}
+                            >
+                                <Box
+                                    component='form'
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        handleSetting({ exposure: getExposure() });
+                                    }}
+                                    sx={{ width: '40%' }}
+                                >
+                                    <FormControl>
+                                        <TextField
+                                            id={exposureId}
+                                            label='Exposure'
+                                            placeholder='100'
+                                            variant='standard'
+                                            size='small'
+                                            autoFocus
+                                            fullWidth
+                                            slotProps={{
+                                                htmlInput: { style: { fontSize: '0.8rem' } },
+                                                inputLabel: { style: { fontSize: '0.8rem' } },
+                                                input: {
+                                                    endAdornment: (
+                                                        <InputAdornment position="end">
+                                                            <Typography sx={{ fontSize: '0.8rem' }}>
+                                                                ms
+                                                            </Typography>
+                                                        </InputAdornment>
+                                                    ),
+                                                },
+                                            }}
+                                        />
+                                    </FormControl>
+                                </Box>
+                                <Box
+                                    component='form'
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        handleSetting({ period: getPeriod() });
+                                    }}
+                                    sx={{ width: '40%' }}
+                                >
+                                    <FormControl>
+                                        <TextField
+                                            id={periodId}
+                                            label='Period'
+                                            placeholder='1'
+                                            variant='standard'
+                                            size='small'
+                                            autoFocus
+                                            fullWidth
+                                            slotProps={{
+                                                htmlInput: { style: { fontSize: '0.8rem' } },
+                                                inputLabel: { style: { fontSize: '0.8rem' } },
+                                                input: {
+                                                    endAdornment:
+                                                        <InputAdornment position="end">
+                                                            <Typography sx={{ fontSize: '0.8rem' }}>
+                                                                s
+                                                            </Typography>
+                                                        </InputAdornment>,
+                                                },
+                                            }}
+                                        />
+                                    </FormControl>
+                                </Box>
+                                <Button
+                                    variant='contained'
+                                    size='small'
+                                    sx={{ fontSize: '0.8rem', marginBottom: 0.3, padding: 0 }}
+                                    onClick={() => {
+                                        handleSetting({ exposure: getExposure(), period: getPeriod() });
+                                    }}
+                                >
+                                    apply
+                                </Button>
+                            </Stack>
+                        </Stack>
+                    </Collapse>
+                </Stack>
+            ) : (
+                <Skeleton variant='rounded' height={50} />
+            )}
             <Stack
                 direction='row'
                 sx={{ justifyContent: 'center', alignItems: 'center' }}
