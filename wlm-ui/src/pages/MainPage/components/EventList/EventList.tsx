@@ -44,8 +44,15 @@ const EventList = () => {
         <DataGrid
             rows={rows}
             columns={columns}
-            disableColumnSelector
+            initialState={{
+                pagination: { paginationModel: { pageSize: 25 } },
+                density: 'compact',
+            }}
+            pageSizeOptions={[25, 50, 100, { value: -1, label: 'All' }]}
             slots={{ toolbar: GridToolbar }}
+            disableColumnSelector
+            disableRowSelectionOnClick
+            disableDensitySelector
         />
     );
 };
