@@ -24,7 +24,7 @@ export interface UserInfo {
 };
 
 const initialState: UserInfo = {
-    user: JSON.parse(localStorage.getItem('user.user') || 'null'),
+    user: JSON.parse(sessionStorage.getItem('user.user') || 'null'),
 };
 
 export const signin = createAsyncThunk(
@@ -54,7 +54,7 @@ export const userSlice = createSlice({
             .addCase(signin.fulfilled, (state, action) => {
                 state.user = action.payload.user;
                 state.isSignedIn = true;
-                localStorage.setItem('user.user', JSON.stringify(state.user));
+                sessionStorage.setItem('user.user', JSON.stringify(state.user));
             })
             .addCase(signin.rejected, (state) => {
                 state.isSignedIn = false;
@@ -62,7 +62,7 @@ export const userSlice = createSlice({
             .addCase(signout.fulfilled, (state) => {
                 state.user = null;
                 state.isSignedIn = undefined;
-                localStorage.clear()
+                sessionStorage.clear()
             })
     },
 });
