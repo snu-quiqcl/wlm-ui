@@ -63,7 +63,7 @@ export const fetchList = createAsyncThunk(
     'channel/fetch',
     async () => {
         const response = await axios.get<
-            (ChannelType & Pick<ChannelInfo, 'inUse' | 'hasLock'>)[]>('/channel/');
+            (ChannelType & Pick<ChannelInfo, 'inUse' | 'hasLock'>)[]>('/api/channel/');
         return response.data;
     },
 );
@@ -73,7 +73,7 @@ export const postInUse = createAsyncThunk(
     async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'inUse'>) => {
         const { channel, inUse } = payload;
         const newInUse = !inUse;
-        await axios.post(`/operation/${channel}/`, { 'on': newInUse });
+        await axios.post(`/api/operation/${channel}/`, { 'on': newInUse });
         return { channel: channel, inUse: newInUse };
     },
 );
@@ -82,7 +82,7 @@ export const postSetting = createAsyncThunk(
     'channel/postSetting',
     async (payload: Pick<ChannelType, 'channel'> & Partial<SettingType>) => {
         const data = { exposure: payload.exposure, period: payload.period };
-        await axios.post(`/setting/${payload.channel}/`, data);
+        await axios.post(`/api/setting/${payload.channel}/`, data);
     },
 );
 
@@ -90,7 +90,7 @@ export const tryLock = createAsyncThunk(
     'channel/tryLock',
     async (payload: Pick<ChannelType, 'channel'>) => {
         const { channel } = payload;
-        await axios.post(`/lock/${channel}/try/`);
+        await axios.post(`/api/lock/${channel}/try/`);
         return { channel: channel };
     },
 );
@@ -99,7 +99,7 @@ export const releaseLock = createAsyncThunk(
     'channel/releaseLock',
     async (payload: Pick<ChannelType, 'channel'>) => {
         const { channel } = payload;
-        await axios.put(`/lock/${channel}/release/`);
+        await axios.put(`/api/lock/${channel}/release/`);
         return { channel: channel };
     },
 );
