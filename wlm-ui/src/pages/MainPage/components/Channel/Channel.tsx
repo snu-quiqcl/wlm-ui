@@ -73,7 +73,7 @@ const Channel = (props: Props) => {
 
     useEffect(() => {
         const channel = props.channel.channel;
-        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/operation/${channel}/`);
+        const socket = new WebSocket(`/ws/operation/${channel}/`);
 
         socket.onopen = () => {
             setIsOperationSocketConnected(true);
@@ -94,7 +94,7 @@ const Channel = (props: Props) => {
 
     useEffect(() => {
         const channel = props.channel.channel;
-        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/lock/${channel}/`);
+        const socket = new WebSocket(`/ws/lock/${channel}/`);
 
         socket.onopen = () => {
             setIsLockSocketConnected(true);
@@ -115,8 +115,7 @@ const Channel = (props: Props) => {
 
     useEffect(() => {
         const channel = props.channel.channel;
-        const socket = new WebSocket(
-            `${process.env.REACT_APP_WEBSOCKET_URL}/measurement/${channel}/`);
+        const socket = new WebSocket(`/ws/measurement/${channel}/`);
 
         socket.onopen = () => {
             setIsMeasurementSocketConnected(true);
@@ -137,7 +136,7 @@ const Channel = (props: Props) => {
 
     useEffect(() => {
         const channel = props.channel.channel;
-        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/setting/${channel}/`);
+        const socket = new WebSocket(`/ws/setting/${channel}/`);
 
         socket.onopen = () => {
             setIsSettingSocketConnected(true);

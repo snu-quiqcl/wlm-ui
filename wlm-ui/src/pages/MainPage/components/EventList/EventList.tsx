@@ -37,7 +37,7 @@ const EventList = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
-        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/event/`);
+        const socket = new WebSocket('/ws/event/');
 
         socket.onmessage = event => {
             const data = JSON.parse(event.data) as EventType | EventType[];
