@@ -2,7 +2,6 @@
   "name": "wlm-ui",
   "version": "0.1.0",
   "private": false,
-  "proxy": "http://127.0.0.1:8000",
   "dependencies": {
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
