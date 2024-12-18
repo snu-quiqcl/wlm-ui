@@ -121,6 +121,11 @@ const ChannelList = () => {
                                         <Box
                                             ref={draggableProvided.innerRef}
                                             {...draggableProvided.draggableProps}
+                                            sx={(theme) => ({
+                                                [theme.breakpoints.down('sm')]: {
+                                                    width: '100%',
+                                                },
+                                            })}
                                         >
                                             <Channel
                                                 key={info.channel.channel}
