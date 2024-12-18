@@ -8,16 +8,30 @@ import { eventListActions, EventType, selectEventList } from '../../../../store/
 const EventList = () => {
     const [rows, setRows] = useState<GridRowsProp>([]);
     const columns: GridColDef[] = [
-        { field: 'occurredAt', type: 'dateTime', headerName: 'Timestamp', width: 200 },
+        {
+            field: 'occurredAt',
+            type: 'dateTime',
+            headerName: 'Timestamp',
+            flex: 1,
+            maxWidth: 200,
+        },
         {
             field: 'category',
             type: 'singleSelect',
             valueOptions: [
                 'general', 'warning', 'error', 'user', 'operation', 'setting', 'lock', 'config'],
             headerName: 'Category',
-            width: 150,
+            flex: 1,
+            maxWidth: 150,
         },
-        { field: 'content', type: 'string', headerName: 'Content', flex: 1, sortable: false },
+        {
+            field: 'content',
+            type: 'string',
+            headerName: 'Content',
+            flex: 2,
+            minWidth: 250,
+            sortable: false,
+        },
     ];
     const eventListState = useSelector(selectEventList);
     const dispatch = useDispatch<AppDispatch>();
