@@ -21,11 +21,12 @@ const Container = styled(Stack)(() => ({
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
-    width: '100%',
-    [theme.breakpoints.up('sm')]: {
-        maxWidth: '450px',
-    },
+    width: '450px',
     padding: theme.spacing(6),
+    [theme.breakpoints.down('sm')]: {
+        width: '80%',
+        padding: theme.spacing(4),
+    },
     gap: theme.spacing(4),
     borderRadius: theme.spacing(1),
     boxShadow:
@@ -78,7 +79,7 @@ const InitPage = () => {
                 <Typography
                     component='h1'
                     variant='h4'
-                    sx={{ alignSelf: 'flex-start', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
+                    sx={{ alignSelf: 'flex-start' }}
                 >
                     Sign in
                 </Typography>
