@@ -746,14 +746,17 @@ const Channel = (props: Props) => {
                     </Stack>
                 </Collapse>
             </Stack>
-            <Box>
+            <Stack
+                direction='row'
+                sx={{ justifyContent: 'center', alignItems: 'center' }}
+            >
                 <IconButton
                     size='small'
                     {...props.dragHandleProps}
                 >
                     <DragHandleIcon fontSize='small' />
                 </IconButton>
-            </Box>
+            </Stack>
         </Card>
     );
 };
