@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { Line } from '@nivo/line';
+import { ResponsiveLine } from '@nivo/line';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
@@ -31,7 +31,6 @@ const TIME_RANGE = 30 * 1000;
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
-    width: '100%',
     height: 'fit-content',
     padding: theme.spacing(2),
     gap: theme.spacing(2),
@@ -282,8 +281,9 @@ const Channel = (props: ChannelInfo) => {
             variant='outlined'
             sx={theme => ({
                 gap: 1,
-                [theme.breakpoints.up('sm')]: {
-                    width: isFrequencyOpen ? '500px' : '300px',
+                width: isFrequencyOpen ? '500px' : '300px',
+                [theme.breakpoints.down('sm')]: {
+                    width: '100%',
                 },
             })}
         >
@@ -450,128 +450,130 @@ const Channel = (props: ChannelInfo) => {
                                 />
                             </Stack>
                         </Stack>
-                        <Line
-                            data={[
-                                {
-                                    id: 'measurement',
-                                    data: measurements,
-                                },
-                            ]}
-                            xScale={{
-                                type: 'time',
-                                precision: 'millisecond',
-                                min: new Date(timeWindow[0]),
-                                max: new Date(timeWindow[1]),
-                            }}
-                            xFormat='time:%M:%S.%L'
-                            yScale={{
-                                type: 'linear',
-                                min: 'auto',
-                                max: 'auto',
-                                nice: true,
-                            }}
-                            yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
-                            width={450}
-                            height={300}
-                            margin={{
-                                top: 10,
-                                right: 30,
-                                bottom: 30,
-                                left: 80,
-                            }}
-                            curve='monotoneX'
-                            lineWidth={2}
-                            enablePoints
-                            pointSize={6}
-                            pointColor={{ from: 'color' }}
-                            pointBorderWidth={1}
-                            pointBorderColor='#fff'
-                            enableGridX
-                            enableGridY
-                            axisBottom={{
-                                format: '%M:%S',
-                            }}
-                            axisLeft={{
-                                format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
-                                legend: 'Frequency (MHz)',
-                                legendOffset: -70,
-                                legendPosition: 'middle',
-                            }}
-                            isInteractive
-                            enableSlices='x'
-                            sliceTooltip={({ slice }) => (
-                                <Card
-                                    sx={{ width: '160px', padding: 1 }}
-                                >
-                                    <Grid container>
-                                        <Grid
-                                            container
-                                            size={12}
-                                            sx={{ alignItems: 'center' }}
-                                        >
+                        <Box
+                            sx={{ width: '90%', height: '300px' }}
+                        >
+                            <ResponsiveLine
+                                data={[
+                                    {
+                                        id: 'measurement',
+                                        data: measurements,
+                                    },
+                                ]}
+                                xScale={{
+                                    type: 'time',
+                                    precision: 'millisecond',
+                                    min: new Date(timeWindow[0]),
+                                    max: new Date(timeWindow[1]),
+                                }}
+                                xFormat='time:%M:%S.%L'
+                                yScale={{
+                                    type: 'linear',
+                                    min: 'auto',
+                                    max: 'auto',
+                                    nice: true,
+                                }}
+                                yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
+                                margin={{
+                                    top: 10,
+                                    right: 30,
+                                    bottom: 30,
+                                    left: 80,
+                                }}
+                                curve='monotoneX'
+                                lineWidth={2}
+                                enablePoints
+                                pointSize={6}
+                                pointColor={{ from: 'color' }}
+                                pointBorderWidth={1}
+                                pointBorderColor='#fff'
+                                enableGridX
+                                enableGridY
+                                axisBottom={{
+                                    format: '%M:%S',
+                                }}
+                                axisLeft={{
+                                    format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
+                                    legend: 'Frequency (MHz)',
+                                    legendOffset: -70,
+                                    legendPosition: 'middle',
+                                }}
+                                isInteractive
+                                enableSlices='x'
+                                sliceTooltip={({ slice }) => (
+                                    <Card
+                                        sx={{ width: '160px', padding: 1 }}
+                                    >
+                                        <Grid container>
                                             <Grid
-                                                size={3.5}
-                                                sx={{
-                                                    display: 'flex',
-                                                    justifyContent: 'center'
-                                                }}
+                                                container
+                                                size={12}
+                                                sx={{ alignItems: 'center' }}
                                             >
-                                                <Typography
-                                                    variant='caption'
-                                                    sx={{ fontWeight: 'bold' }}
+                                                <Grid
+                                                    size={3.5}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'center'
+                                                    }}
                                                 >
-                                                    Time
-                                                </Typography>
+                                                    <Typography
+                                                        variant='caption'
+                                                        sx={{ fontWeight: 'bold' }}
+                                                    >
+                                                        Time
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid 
+                                                    size={8.5}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'flex-start'
+                                                    }}
+                                                >
+                                                    <Typography variant='caption'>
+                                                        {slice.points[0].data.xFormatted}
+                                                    </Typography>
+                                                </Grid>
                                             </Grid>
-                                            <Grid 
-                                                size={8.5}
-                                                sx={{
-                                                    display: 'flex',
-                                                    justifyContent: 'flex-start'
-                                                }}
+                                            <Grid
+                                                container
+                                                size={12}
+                                                sx={{ alignItems: 'center' }}
                                             >
-                                                <Typography variant='caption'>
-                                                    {slice.points[0].data.xFormatted}
-                                                </Typography>
+                                                <Grid
+                                                    size={3.5}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant='caption'
+                                                        sx={{ fontWeight: 'bold' }}
+                                                    >
+                                                        Freq
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid 
+                                                    size={8.5}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'flex-start'
+                                                    }}
+                                                >
+                                                    <Typography variant='caption'>
+                                                        {slice.points[0].data.yFormatted}
+                                                    </Typography>
+                                                </Grid>
                                             </Grid>
                                         </Grid>
-                                        <Grid
-                                            container
-                                            size={12}
-                                            sx={{ alignItems: 'center' }}
-                                        >
-                                            <Grid
-                                                size={3.5}
-                                                sx={{
-                                                    display: 'flex',
-                                                    justifyContent: 'center'
-                                                }}
-                                            >
-                                                <Typography
-                                                    variant='caption'
-                                                    sx={{ fontWeight: 'bold' }}
-                                                >
-                                                    Freq
-                                                </Typography>
-                                            </Grid>
-                                            <Grid 
-                                                size={8.5}
-                                                sx={{
-                                                    display: 'flex',
-                                                    justifyContent: 'flex-start'
-                                                }}
-                                            >
-                                                <Typography variant='caption'>
-                                                    {slice.points[0].data.yFormatted}
-                                                </Typography>
-                                            </Grid>
-                                        </Grid>
-                                    </Grid>
-                                </Card>
-                            )}
-                            enableCrosshair
-                            animate={false}
-                        />
+                                    </Card>
+                                )}
+                                enableCrosshair
+                                animate={false}
+                            />
+                        </Box>
                         <Slider
                             size='small'
                             value={timeWindow}
