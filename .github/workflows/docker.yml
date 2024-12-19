@@ -12,6 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup SSL certificates
+      working-directory: wlm-ui
       run: |
         mkdir ssl
         echo "${{ secrets.FULLCHAIN_PEM }}" > ssl/fullchain.pem
@@ -22,6 +23,7 @@ jobs:
         username: ${{ vars.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_TOKEN }}
     - name: Build Docker image
+      working-directory: wlm-ui
       run: docker build -t ${{ vars.DOCKER_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest .
     - name: Push Docker image to Docker Hub
       run: docker push ${{ vars.DOCKER_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest
