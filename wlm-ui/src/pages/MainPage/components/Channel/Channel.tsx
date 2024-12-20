@@ -677,7 +677,6 @@ const Channel = (props: ChannelInfo) => {
                                         placeholder='100'
                                         variant='standard'
                                         size='small'
-                                        autoFocus
                                         fullWidth
                                         slotProps={{
                                             htmlInput: { style: { fontSize: '0.8rem' } },
@@ -710,7 +709,6 @@ const Channel = (props: ChannelInfo) => {
                                         placeholder='1'
                                         variant='standard'
                                         size='small'
-                                        autoFocus
                                         fullWidth
                                         slotProps={{
                                             htmlInput: { style: { fontSize: '0.8rem' } },
