@@ -110,7 +110,6 @@ const InitPage = () => {
                             placeholder='******'
                             variant='standard'
                             type='password'
-                            autoFocus
                             fullWidth
                             error={!!passwordErrorMessage}
                             helperText={passwordErrorMessage}
