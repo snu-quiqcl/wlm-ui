@@ -383,7 +383,7 @@ const Channel = (props: ChannelInfo) => {
                         >
                             <Switch
                                 checked={props.hasLock}
-                                disabled={!isLockButtonEnabled}
+                                disabled={!canUpdateSettings}
                                 size='small'
                                 onChange={() => {
                                     setIsLockButtonEnabled(false);
