@@ -23,7 +23,7 @@ export interface UserInfo {
 };
 
 const initialState: UserInfo = {
-    user: JSON.parse(localStorage.getItem('user.user') || 'null'),
+    user: JSON.parse(localStorage.getItem('user.user') ?? 'null'),
 };
 
 export const signin = createAsyncThunk(
