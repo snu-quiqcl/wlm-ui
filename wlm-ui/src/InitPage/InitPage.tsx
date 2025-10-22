@@ -7,7 +7,6 @@ import { signin } from '../store/slices/user/user';
 const InitPage = () => {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
-
     const dispatch = useDispatch<AppDispatch>();
 
     const onClickSignin = async () => {

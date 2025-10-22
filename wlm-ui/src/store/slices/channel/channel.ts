@@ -11,6 +11,8 @@ export interface ChannelType {
 export interface ChannelInfo {
     channel: ChannelType;
     inUse: boolean;
+    exposure: number;
+    period: number;
 };
 
 export interface ChannelListInfo {
@@ -26,6 +28,20 @@ export const fetchList = createAsyncThunk(
     async () => {
         const response = await axios.get<ChannelType[]>('/channel/');
         return response.data;
+    },
+);
+
+export const postExposure = createAsyncThunk(
+    'channel/postExposure',
+    async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'exposure'>) => {
+        await axios.post(`/setting/${payload.channel}/`, { 'exposure': payload.exposure });
+    },
+);
+
+export const postPeriod = createAsyncThunk(
+    'channel/postPeriod',
+    async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'period'>) => {
+        await axios.post(`/setting/${payload.channel}/`, { 'period': payload.period });
     },
 );
 
