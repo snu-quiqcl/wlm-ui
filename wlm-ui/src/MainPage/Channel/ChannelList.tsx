@@ -21,7 +21,7 @@ const ChannelList = () => {
         dispatch(fetchList());
     };
 
-    const onClickSetInUse = (channel: number, inUse: boolean) => {
+    const onClickSetInUse = async (channel: number, inUse: boolean) => {
         dispatch(postInUse({ channel: channel, inUse: inUse }));
     };
 
