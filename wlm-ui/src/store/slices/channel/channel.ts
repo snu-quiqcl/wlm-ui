@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 import { RootState } from '../..';
@@ -26,50 +26,62 @@ const initialState: ChannelListInfo = {
 export const fetchList = createAsyncThunk(
     'channel/fetch',
     async () => {
-        const response = await axios.get<ChannelType[]>('/channel/');
+        const response = await axios.get<(ChannelType & Pick<ChannelInfo, 'inUse'>)[]>('/channel/');
         return response.data;
+    },
+);
+
+export const postInUse = createAsyncThunk(
+    'channel/postInUse',
+    async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'inUse'>) => {
+        const { channel, inUse } = payload;
+        const newInUse = !inUse;
+        await axios.post(`/operation/${channel}/`, { 'on': newInUse });
+        return { channel: channel, inUse: newInUse };
     },
 );
 
 export const postExposure = createAsyncThunk(
     'channel/postExposure',
     async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'exposure'>) => {
-        await axios.post(`/setting/${payload.channel}/`, { 'exposure': payload.exposure });
+        await axios.post(`/setting/${payload.channel}/`, { exposure: payload.exposure });
     },
 );
 
 export const postPeriod = createAsyncThunk(
     'channel/postPeriod',
     async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'period'>) => {
-        await axios.post(`/setting/${payload.channel}/`, { 'period': payload.period });
+        await axios.post(`/setting/${payload.channel}/`, { period: payload.period });
     },
 );
 
 export const channelListSlice = createSlice({
     name: 'channelList',
     initialState,
-    reducers: {
-        toggleUse: (state, action: PayloadAction<{ channel: number }>) => {
-            const targetInfo = state.channels.find(
-                (info) => info.channel.channel === action.payload.channel
-            );
-            if (targetInfo) {
-                targetInfo.inUse = !targetInfo.inUse;
-            }
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder
             .addCase(fetchList.fulfilled, (state, action) => {
                 state.channels = action.payload.map((ch) => {
                     const originalInfo = state.channels.find(
-                        (info) => info.channel.channel === ch.channel
+                        info => info.channel.channel === ch.channel
                     );
-                    return <ChannelInfo>({
-                        channel: ch,
-                        inUse: (originalInfo ? originalInfo.inUse : false),
-                    });
+                    return {
+                        channel: { channel: ch.channel, name: ch.name } as ChannelType,
+                        inUse: ch.inUse,
+                        exposure: originalInfo?.exposure ?? 0,
+                        period: originalInfo?.period ?? 0,
+                    } as ChannelInfo;
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
+            })
+            .addCase(postInUse.fulfilled, (state, action) => {
+                const targetInfo = state.channels.find(
+                    info => info.channel.channel === action.payload.channel
+                );
+                if (targetInfo === undefined) {
+                    throw new Error('Channel not found');
+                }
+                targetInfo.inUse = action.payload.inUse;
             })
     },
 });

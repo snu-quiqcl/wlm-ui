@@ -1,24 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { ChannelInfo } from '../../store/slices/channel/channel';
 import './Channel.scss';
 
 interface IProps extends ChannelInfo {
-    onClickUse: () => void;
+    onClickSetInUse: (inUse: boolean) => void;
     onClickSetExposure: (exposure: number) => void;
     onClickSetPeriod: (period: number) => void;
 };
 
 const Channel = (props: IProps) => {
+    const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
+
+    useEffect(() => {
+        setIsInUseButtonEnabled(true);
+    }, [props.inUse]);
 
     return (
         <div className='channel-item'>
             <div className='channel-title'>
                 <b>CH {props.channel.channel}</b>
                 <span>{props.channel.name}</span>
-                <button onClick={props.onClickUse} style={{ width: '60px' }}>{props.inUse ? 'In use' : 'Use'}</button>
+                <button
+                    disabled={!isInUseButtonEnabled}
+                    onClick={() => {
+                        setIsInUseButtonEnabled(false);
+                        props.onClickSetInUse(props.inUse);
+                    }}
+                    style={{ width: '60px' }}
+                >
+                    {props.inUse ? 'In use' : 'Use'}
+                </button>
             </div>
             <div className='channel-attr-editor-container'>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>
