@@ -12,6 +12,13 @@
     justify-content: space-between;
 }
 
+.channel-attr-viewer-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+}
+
 .channel-attr-editor-container {
     display: grid;
     grid-template-columns: auto 60px auto auto;

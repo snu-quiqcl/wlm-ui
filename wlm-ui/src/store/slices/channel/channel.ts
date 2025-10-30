@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 import { RootState } from '../..';
@@ -8,11 +8,15 @@ export interface ChannelType {
     name: string;
 };
 
+export interface SettingType {
+    exposure: number;
+    period: number;
+};
+
 export interface ChannelInfo {
     channel: ChannelType;
     inUse: boolean;
-    exposure: number;
-    period: number;
+    setting: SettingType;
 };
 
 export interface ChannelListInfo {
@@ -20,7 +24,19 @@ export interface ChannelListInfo {
 };
 
 const initialState: ChannelListInfo = {
-    channels: JSON.parse(localStorage.getItem('channel.channelList') ?? '[]'),
+    channels: [],
+};
+
+const getChannelInfo = (state: ChannelListInfo, channel: number) => (
+    state.channels.find(info => info.channel.channel === channel)
+);
+
+const getChannelInfoWithException = (state: ChannelListInfo, channel: number) => {
+    const info = getChannelInfo(state, channel);
+    if (info === undefined) {
+        throw new Error('Channel not found');
+    }
+    return info;
 };
 
 export const fetchList = createAsyncThunk(
@@ -43,14 +59,14 @@ export const postInUse = createAsyncThunk(
 
 export const postExposure = createAsyncThunk(
     'channel/postExposure',
-    async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'exposure'>) => {
+    async (payload: Pick<ChannelType, 'channel'> & Pick<SettingType, 'exposure'>) => {
         await axios.post(`/setting/${payload.channel}/`, { exposure: payload.exposure });
     },
 );
 
 export const postPeriod = createAsyncThunk(
     'channel/postPeriod',
-    async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'period'>) => {
+    async (payload: Pick<ChannelType, 'channel'> & Pick<SettingType, 'period'>) => {
         await axios.post(`/setting/${payload.channel}/`, { period: payload.period });
     },
 );
@@ -58,30 +74,35 @@ export const postPeriod = createAsyncThunk(
 export const channelListSlice = createSlice({
     name: 'channelList',
     initialState,
-    reducers: {},
+    reducers: {
+        fetchSetting: (
+            state, action: PayloadAction<Pick<ChannelType, 'channel'> & Partial<SettingType>>
+        ) => {
+            const { channel, exposure, period } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            if (exposure !== undefined) {
+                info.setting.exposure = exposure;
+            }
+            if (period !== undefined) {
+                info.setting.period = period;
+            }
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchList.fulfilled, (state, action) => {
                 state.channels = action.payload.map((ch) => {
-                    const originalInfo = state.channels.find(
-                        info => info.channel.channel === ch.channel
-                    );
+                    const info = getChannelInfo(state, ch.channel);
                     return {
-                        channel: { channel: ch.channel, name: ch.name } as ChannelType,
+                        channel: { channel: ch.channel, name: ch.name },
                         inUse: ch.inUse,
-                        exposure: originalInfo?.exposure ?? 0,
-                        period: originalInfo?.period ?? 0,
+                        setting: info?.setting ?? { exposure: 0, period: 0 },
                     } as ChannelInfo;
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
             })
             .addCase(postInUse.fulfilled, (state, action) => {
-                const targetInfo = state.channels.find(
-                    info => info.channel.channel === action.payload.channel
-                );
-                if (targetInfo === undefined) {
-                    throw new Error('Channel not found');
-                }
-                targetInfo.inUse = action.payload.inUse;
+                const info = getChannelInfoWithException(state, action.payload.channel);
+                info.inUse = action.payload.inUse;
             })
     },
 });
