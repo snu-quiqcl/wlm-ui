@@ -89,7 +89,7 @@ const Channel = (props: IProps) => {
                     {props.setting.period} s
                 </span>
             </div>
-            <div className={'channel-attr-editor-container'}>
+            <div className='channel-attr-editor-container'>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>
                 <input
                     type='number'
