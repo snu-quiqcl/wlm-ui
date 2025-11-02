@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { AppDispatch } from '../../store';
-import { channelListActions, SettingType, ChannelInfo } from '../../store/slices/channel/channel';
+import {
+    channelListActions, SettingType, MeasurementType, ChannelInfo
+} from '../../store/slices/channel/channel';
 import './Channel.scss';
 
 interface IProps extends ChannelInfo {
@@ -28,6 +30,33 @@ const Channel = (props: IProps) => {
         };
 
         return () => socket.close();
+    }, [dispatch, props.channel.channel]);
+
+    useEffect(() => {
+        const channel = props.channel.channel;
+        const socket = new WebSocket(
+            `${process.env.REACT_APP_WEBSOCKET_URL}/measurement/${channel}/`);
+
+        socket.onmessage = event => {
+            const data = JSON.parse(event.data) as MeasurementType | MeasurementType[];
+            dispatch(channelListActions.fetchMeasurements(
+                { channel: channel, measurements: data }));
+        };
+
+        return () => socket.close();
+    }, [dispatch, props.channel.channel]);
+
+    useEffect(() => {
+        const channel = props.channel.channel;
+
+        const interval = setInterval(() => {
+            dispatch(channelListActions.removeOldMeasurements({ channel: channel }));
+        }, 10 * 60 * 1000);
+
+        return () => {
+            clearInterval(interval);
+            dispatch(channelListActions.removeAllMeasurements({ channel: channel }));
+        };
     }, [dispatch, props.channel.channel]);
 
     useEffect(() => {

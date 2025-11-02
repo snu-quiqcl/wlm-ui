@@ -13,10 +13,17 @@ export interface SettingType {
     period: number;
 };
 
+export interface MeasurementType {
+    frequency: number | null;
+    error: string | null;
+    measuredAt: string;
+};
+
 export interface ChannelInfo {
     channel: ChannelType;
     inUse: boolean;
     setting: SettingType;
+    measurements: MeasurementType[];
 };
 
 export interface ChannelListInfo {
@@ -87,6 +94,29 @@ export const channelListSlice = createSlice({
                 info.setting.period = period;
             }
         },
+        fetchMeasurements: (
+            state,
+            action: PayloadAction<
+                Pick<ChannelType, 'channel'> & { measurements: MeasurementType | MeasurementType[] }>
+        ) => {
+            const { channel, measurements } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            if (Array.isArray(measurements)) {
+                info.measurements.push(...measurements);
+            } else {
+                info.measurements.push(measurements);
+            }
+        },
+        removeOldMeasurements: (state, action: PayloadAction<Pick<ChannelType, 'channel'>>) => {
+            const info = getChannelInfoWithException(state, action.payload.channel);
+            const cutoffTime = new Date(Date.now() - 10 * 60 * 1000);
+            info.measurements = info.measurements.filter(
+                measurement => new Date(measurement.measuredAt) > cutoffTime);
+        },
+        removeAllMeasurements: (state, action: PayloadAction<Pick<ChannelType, 'channel'>>) => {
+            const info = getChannelInfoWithException(state, action.payload.channel);
+            info.measurements = [];
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -97,6 +127,7 @@ export const channelListSlice = createSlice({
                         channel: { channel: ch.channel, name: ch.name },
                         inUse: ch.inUse,
                         setting: info?.setting ?? { exposure: 0, period: 0 },
+                        measurements: info?.measurements ?? [],
                     } as ChannelInfo;
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
             })
