@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Line } from '@nivo/line';
 
@@ -198,7 +198,7 @@ const Channel = (props: IProps) => {
                     {props.setting.period} s
                 </span>
             </div>
-            <div className={'channel-attr-editor-container'}>
+            <div className='channel-attr-editor-container'>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>
                 <input
                     type='number'
