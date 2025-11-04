@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { Line } from '@nivo/line';
 
 import { AppDispatch } from '../../store';
 import {
     channelListActions, SettingType, MeasurementType, ChannelInfo
 } from '../../store/slices/channel/channel';
 import './Channel.scss';
+
+const TIME_RANGE = 30 * 1000;
 
 interface IProps extends ChannelInfo {
     onClickSetInUse: (inUse: boolean) => void;
@@ -15,8 +18,15 @@ interface IProps extends ChannelInfo {
 
 const Channel = (props: IProps) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
+    const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
+    const measurementsRef = useRef(props.measurements);
+    const [recentMeasurements, setRecentMeasurements] = useState<
+        { x: Date, y: number | null }[]>([]);
+    const [timeWindow, setTimeWindow] = useState<{ min: Date, max: Date }>(
+        { min: new Date(Date.now() - TIME_RANGE), max: new Date() });
+    const latestMeasurement = props.measurements.at(-1);
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
@@ -49,17 +59,46 @@ const Channel = (props: IProps) => {
     useEffect(() => {
         const channel = props.channel.channel;
 
-        const interval = setInterval(() => {
+        const intervalId = setInterval(() => {
             dispatch(channelListActions.removeOldMeasurements({ channel: channel }));
         }, 10 * 60 * 1000);
 
         return () => {
-            clearInterval(interval);
+            clearInterval(intervalId);
             dispatch(channelListActions.removeAllMeasurements({ channel: channel }));
         };
     }, [dispatch, props.channel.channel]);
 
     useEffect(() => {
+        measurementsRef.current = props.measurements;
+    }, [props.measurements]);
+
+    useEffect(() => {
+        let intervalId: NodeJS.Timer | undefined;
+
+        if (shouldUpdatePlot) {
+            intervalId = setInterval(() => {
+                const now = new Date();
+                const cutoffTime = new Date(now.getTime() - TIME_RANGE);
+
+                setRecentMeasurements(measurementsRef.current.filter(measurement => (
+                    new Date(measurement.measuredAt) > cutoffTime
+                )).map(measurement => ({
+                    x: new Date(measurement.measuredAt),
+                    y: measurement.frequency,
+                })));
+
+                setTimeWindow({ min: cutoffTime, max: now });
+            }, 100);
+        } else {
+            clearInterval(intervalId);
+        }
+
+        return () => clearInterval(intervalId);
+    }, [shouldUpdatePlot]);
+
+    useEffect(() => {
+        setShouldUpdatePlot(props.inUse);
         setIsInUseButtonEnabled(true);
     }, [props.inUse]);
 
@@ -78,6 +117,76 @@ const Channel = (props: IProps) => {
                 >
                     {props.inUse ? 'In use' : 'Use'}
                 </button>
+            </div>
+            <div style={{ display: props.inUse ? 'block' : 'none' }}>
+                <button onClick={() => setShouldUpdatePlot(!shouldUpdatePlot)}>
+                    {shouldUpdatePlot ? 'Stop' : 'Start'}
+                </button>
+                <Line
+                    data={[
+                        {
+                            id: 'measurement',
+                            data: recentMeasurements,
+                        },
+                    ]}
+                    xScale={{
+                        type: 'time',
+                        precision: 'millisecond',
+                        min: timeWindow.min,
+                        max: timeWindow.max,
+                    }}
+                    xFormat='time:%M:%S.%L'
+                    yScale={{
+                        type: 'linear',
+                        min: 'auto',
+                        max: 'auto',
+                        nice: true,
+                    }}
+                    yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
+                    width={500}
+                    height={300}
+                    margin={{
+                        top: 30,
+                        right: 50,
+                        bottom: 30,
+                        left: 100,
+                    }}
+                    curve='monotoneX'
+                    lineWidth={2}
+                    enablePoints
+                    pointSize={8}
+                    pointColor={{ from: 'color' }}
+                    pointBorderWidth={1}
+                    pointBorderColor='#fff'
+                    enableGridX
+                    gridXValues='every 5 seconds'
+                    enableGridY
+                    axisBottom={{
+                        format: '%M:%S',
+                        tickValues: 'every 5 seconds',
+                    }}
+                    axisLeft={{
+                        format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
+                        legend: 'Frequency (MHz)',
+                        legendOffset: -70,
+                        legendPosition: 'middle',
+                    }}
+                    isInteractive
+                    enableSlices='x'
+                    enableCrosshair
+                    animate={false}
+                />
+                <h1>
+                    {latestMeasurement ? (
+                        latestMeasurement.frequency ? (
+                            `${(latestMeasurement.frequency / 1e12).toFixed(6)} THz`
+                        ) : (
+                            latestMeasurement.error
+                        )
+                    ) : (
+                        'No measurement'
+                    )}
+                </h1>
             </div>
             <div className='channel-attr-viewer-container'>
                 <b>Exp. time</b>
