@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Line } from '@nivo/line';
 
@@ -59,12 +59,12 @@ const Channel = (props: IProps) => {
     useEffect(() => {
         const channel = props.channel.channel;
 
-        const interval = setInterval(() => {
+        const intervalId = setInterval(() => {
             dispatch(channelListActions.removeOldMeasurements({ channel: channel }));
         }, 10 * 60 * 1000);
 
         return () => {
-            clearInterval(interval);
+            clearInterval(intervalId);
             dispatch(channelListActions.removeAllMeasurements({ channel: channel }));
         };
     }, [dispatch, props.channel.channel]);
@@ -74,10 +74,10 @@ const Channel = (props: IProps) => {
     }, [props.measurements]);
 
     useEffect(() => {
-        let interval: NodeJS.Timer | undefined;
+        let intervalId: NodeJS.Timer | undefined;
 
         if (shouldUpdatePlot) {
-            interval = setInterval(() => {
+            intervalId = setInterval(() => {
                 const now = new Date();
                 const cutoffTime = new Date(now.getTime() - TIME_RANGE);
 
@@ -91,10 +91,10 @@ const Channel = (props: IProps) => {
                 setTimeWindow({ min: cutoffTime, max: now });
             }, 100);
         } else {
-            clearInterval(interval);
+            clearInterval(intervalId);
         }
 
-        return () => clearInterval(interval);
+        return () => clearInterval(intervalId);
     }, [shouldUpdatePlot]);
 
     useEffect(() => {
