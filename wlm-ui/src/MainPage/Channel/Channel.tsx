@@ -4,7 +4,7 @@ import { Line } from '@nivo/line';
 
 import { AppDispatch } from '../../store';
 import {
-    channelListActions, SettingType, MeasurementType, ChannelInfo
+    channelListActions, SettingType, MeasurementType, LockType, ChannelInfo
 } from '../../store/slices/channel/channel';
 import './Channel.scss';
 
@@ -14,11 +14,15 @@ interface IProps extends ChannelInfo {
     onClickSetInUse: (inUse: boolean) => void;
     onClickSetExposure: (exposure: number) => void;
     onClickSetPeriod: (period: number) => void;
+    onClickTryLock: () => void;
+    onClickReleaseLock: () => void;
 };
 
 const Channel = (props: IProps) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
+    const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
+    const canUpdateSettings = !props.lock.locked || (props.hasLock && isLockButtonEnabled);
     const [exposure, setExposure] = useState<number>(0);
     const [period, setPeriod] = useState<number>(0);
     const measurementsRef = useRef(props.measurements);
@@ -51,6 +55,19 @@ const Channel = (props: IProps) => {
             const data = JSON.parse(event.data) as MeasurementType | MeasurementType[];
             dispatch(channelListActions.fetchMeasurements(
                 { channel: channel, measurements: data }));
+        };
+
+        return () => socket.close();
+    }, [dispatch, props.channel.channel]);
+
+    useEffect(() => {
+        const channel = props.channel.channel;
+        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/lock/${channel}/`);
+
+        socket.onmessage = event => {
+            const data = JSON.parse(event.data) as LockType;
+            dispatch(channelListActions.fetchLock(
+                { channel: channel, lock: data }));
         };
 
         return () => socket.close();
@@ -101,6 +118,10 @@ const Channel = (props: IProps) => {
         setShouldUpdatePlot(props.inUse);
         setIsInUseButtonEnabled(true);
     }, [props.inUse]);
+
+    useEffect(() => {
+        setIsLockButtonEnabled(true);
+    }, [props.hasLock]);
 
     return (
         <div className='channel-item'>
@@ -188,6 +209,22 @@ const Channel = (props: IProps) => {
                     )}
                 </h1>
             </div>
+            <div className='channel-lock-container'>
+                <span>{props.lock.locked ? `Locked by ${props.lock.owner}` : 'Open'}</span>
+                <button
+                    disabled={!isLockButtonEnabled}
+                    onClick={() => {
+                        setIsLockButtonEnabled(false);
+                        if (props.hasLock) {
+                            props.onClickReleaseLock();
+                        } else {
+                            props.onClickTryLock();
+                        }
+                    }}
+                >
+                    {props.hasLock ? 'Release' : 'Acquire'}
+                </button>
+            </div>
             <div className='channel-attr-viewer-container'>
                 <b>Exp. time</b>
                 <span style={{ width: '60px', textAlign: 'right' }}>
@@ -198,7 +235,7 @@ const Channel = (props: IProps) => {
                     {props.setting.period} s
                 </span>
             </div>
-            <div className='channel-attr-editor-container'>
+            <div className={`channel-attr-editor-container ${!canUpdateSettings && 'disabled'}`}>
                 <b style={{ textAlign: 'left' }}>Exp. time</b>
                 <input
                     type='number'

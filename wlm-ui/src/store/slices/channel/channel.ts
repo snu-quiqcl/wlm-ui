@@ -19,11 +19,18 @@ export interface MeasurementType {
     measuredAt: string;
 };
 
+export interface LockType {
+    locked: boolean;
+    owner: string | null;
+};
+
 export interface ChannelInfo {
     channel: ChannelType;
     inUse: boolean;
     setting: SettingType;
     measurements: MeasurementType[];
+    hasLock: boolean;
+    lock: LockType;
 };
 
 export interface ChannelListInfo {
@@ -49,7 +56,8 @@ const getChannelInfoWithException = (state: ChannelListInfo, channel: number) =>
 export const fetchList = createAsyncThunk(
     'channel/fetch',
     async () => {
-        const response = await axios.get<(ChannelType & Pick<ChannelInfo, 'inUse'>)[]>('/channel/');
+        const response = await axios.get<
+            (ChannelType & Pick<ChannelInfo, 'inUse' | 'hasLock'>)[]>('/channel/');
         return response.data;
     },
 );
@@ -75,6 +83,24 @@ export const postPeriod = createAsyncThunk(
     'channel/postPeriod',
     async (payload: Pick<ChannelType, 'channel'> & Pick<SettingType, 'period'>) => {
         await axios.post(`/setting/${payload.channel}/`, { period: payload.period });
+    },
+);
+
+export const tryLock = createAsyncThunk(
+    'channel/tryLock',
+    async (payload: Pick<ChannelType, 'channel'>) => {
+        const { channel } = payload;
+        await axios.post(`/lock/${channel}/try/`);
+        return { channel: channel };
+    },
+);
+
+export const releaseLock = createAsyncThunk(
+    'channel/releaseLock',
+    async (payload: Pick<ChannelType, 'channel'>) => {
+        const { channel } = payload;
+        await axios.put(`/lock/${channel}/release/`);
+        return { channel: channel };
     },
 );
 
@@ -107,6 +133,13 @@ export const channelListSlice = createSlice({
                 info.measurements.push(measurements);
             }
         },
+        fetchLock: (
+            state, action: PayloadAction<Pick<ChannelType, 'channel'> & { lock: LockType }>
+        ) => {
+            const { channel, lock } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            info.lock = lock;
+        },
         removeOldMeasurements: (state, action: PayloadAction<Pick<ChannelType, 'channel'>>) => {
             const info = getChannelInfoWithException(state, action.payload.channel);
             const cutoffTime = new Date(Date.now() - 10 * 60 * 1000);
@@ -128,12 +161,22 @@ export const channelListSlice = createSlice({
                         inUse: ch.inUse,
                         setting: info?.setting ?? { exposure: 0, period: 0 },
                         measurements: info?.measurements ?? [],
+                        hasLock: ch.hasLock,
+                        lock: info?.lock ?? { locked: false, owner: null },
                     } as ChannelInfo;
                 }).sort((a, b) => a.channel.channel - b.channel.channel);
             })
             .addCase(postInUse.fulfilled, (state, action) => {
                 const info = getChannelInfoWithException(state, action.payload.channel);
                 info.inUse = action.payload.inUse;
+            })
+            .addCase(tryLock.fulfilled, (state, action) => {
+                const info = getChannelInfoWithException(state, action.payload.channel);
+                info.hasLock = true;
+            })
+            .addCase(releaseLock.fulfilled, (state, action) => {
+                const info = getChannelInfoWithException(state, action.payload.channel);
+                info.hasLock = false;
             })
     },
 });
