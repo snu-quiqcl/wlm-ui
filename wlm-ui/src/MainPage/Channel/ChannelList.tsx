@@ -20,15 +20,15 @@ const ChannelList = () => {
         dispatch(fetchList());
     };
 
-    const onClickSetInUse = (channel: number, inUse: boolean) => {
+    const onClickSetInUse = async (channel: number, inUse: boolean) => {
         dispatch(postInUse({ channel: channel, inUse: inUse }));
     };
 
-    const onClickSetExposure = (channel: number, exposure: number) => {
+    const onClickSetExposure = async (channel: number, exposure: number) => {
         dispatch(postExposure({ channel: channel, exposure: exposure }));
     };
     
-    const onClickSetPeriod = (channel: number, period: number) => {
+    const onClickSetPeriod = async (channel: number, period: number) => {
         dispatch(postPeriod({ channel: channel, period: period }));
     };
 
