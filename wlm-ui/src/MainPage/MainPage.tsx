@@ -20,7 +20,7 @@ const MainPage = () => {
 
     return (
         <div>
-            <button onClick={onClickCalibration}>Calibration</button>
+            <button onClick={onClickCalibration}>Calibrate</button>
             <button onClick={onClickSignout}>Sign out</button>
             <ChannelList />
             <EventList />
