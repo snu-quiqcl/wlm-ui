@@ -105,7 +105,7 @@ export const releaseLock = createAsyncThunk(
 );
 
 export const channelListSlice = createSlice({
-    name: 'channelList',
+    name: 'channel',
     initialState,
     reducers: {
         fetchSetting: (
