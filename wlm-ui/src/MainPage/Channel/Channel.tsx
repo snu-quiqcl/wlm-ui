@@ -4,7 +4,7 @@ import { Line } from '@nivo/line';
 
 import { AppDispatch } from '../../store';
 import {
-    channelListActions, SettingType, MeasurementType, LockType, ChannelInfo
+    channelListActions, OperationType, SettingType, MeasurementType, LockType, ChannelInfo
 } from '../../store/slices/channel/channel';
 import './Channel.scss';
 
@@ -41,6 +41,19 @@ const Channel = (props: IProps) => {
             const data = JSON.parse(event.data) as Partial<SettingType>;
             dispatch(channelListActions.fetchSetting(
                 { channel: channel, ...data }));
+        };
+
+        return () => socket.close();
+    }, [dispatch, props.channel.channel]);
+
+    useEffect(() => {
+        const channel = props.channel.channel;
+        const socket = new WebSocket(`${process.env.REACT_APP_WEBSOCKET_URL}/operation/${channel}/`);
+
+        socket.onmessage = event => {
+            const data = JSON.parse(event.data) as OperationType;
+            dispatch(channelListActions.fetchOperation(
+                { channel: channel, operation: data }));
         };
 
         return () => socket.close();
@@ -128,6 +141,7 @@ const Channel = (props: IProps) => {
             <div className='channel-title'>
                 <b>CH {props.channel.channel}</b>
                 <span>{props.channel.name}</span>
+                <span>{props.operation.on ? 'ON' : 'OFF'}</span>
                 <button
                     disabled={!isInUseButtonEnabled}
                     onClick={() => {
@@ -139,6 +153,9 @@ const Channel = (props: IProps) => {
                     {props.inUse ? 'In use' : 'Use'}
                 </button>
             </div>
+            <span style={{ textAlign: 'left' }}>
+                Users: {props.operation.requesters.join(', ')}
+            </span>
             <div style={{ display: props.inUse ? 'block' : 'none' }}>
                 <button onClick={() => setShouldUpdatePlot(!shouldUpdatePlot)}>
                     {shouldUpdatePlot ? 'Stop' : 'Start'}
