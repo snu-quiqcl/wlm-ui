@@ -154,7 +154,7 @@ const Channel = (props: IProps) => {
                 </button>
             </div>
             <span style={{ textAlign: 'left' }}>
-                Requesters: {props.operation.requesters.join(', ')}
+                Users: {props.operation.requesters.join(', ')}
             </span>
             <div style={{ display: props.inUse ? 'block' : 'none' }}>
                 <button onClick={() => setShouldUpdatePlot(!shouldUpdatePlot)}>
