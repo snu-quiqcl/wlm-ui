@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Line } from '@nivo/line';
 
@@ -82,12 +82,12 @@ const Channel = (props: ChannelInfo) => {
     useEffect(() => {
         const channel = props.channel.channel;
 
-        const interval = setInterval(() => {
+        const intervalId = setInterval(() => {
             dispatch(channelListActions.removeOldMeasurements({ channel: channel }));
         }, 10 * 60 * 1000);
 
         return () => {
-            clearInterval(interval);
+            clearInterval(intervalId);
             dispatch(channelListActions.removeAllMeasurements({ channel: channel }));
         };
     }, [dispatch, props.channel.channel]);
@@ -97,10 +97,10 @@ const Channel = (props: ChannelInfo) => {
     }, [props.measurements]);
 
     useEffect(() => {
-        let interval: NodeJS.Timer | undefined;
+        let intervalId: NodeJS.Timer | undefined;
 
         if (shouldUpdatePlot) {
-            interval = setInterval(() => {
+            intervalId = setInterval(() => {
                 const now = new Date();
                 const cutoffTime = new Date(now.getTime() - TIME_RANGE);
 
@@ -114,10 +114,10 @@ const Channel = (props: ChannelInfo) => {
                 setTimeWindow({ min: cutoffTime, max: now });
             }, 100);
         } else {
-            clearInterval(interval);
+            clearInterval(intervalId);
         }
 
-        return () => clearInterval(interval);
+        return () => clearInterval(intervalId);
     }, [shouldUpdatePlot]);
 
     useEffect(() => {
@@ -167,7 +167,7 @@ const Channel = (props: ChannelInfo) => {
                 </button>
             </div>
             <span style={{ textAlign: 'left' }}>
-                Requesters: {props.operation.requesters.join(', ')}
+                Users: {props.operation.requesters.join(', ')}
             </span>
             <div style={{ display: props.inUse ? 'block' : 'none' }}>
                 <button onClick={() => setShouldUpdatePlot(!shouldUpdatePlot)}>
