@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { AppDispatch } from '../store';
-import { signin } from '../store/slices/user/user';
+import { AppDispatch } from '../../store';
+import { signin } from '../../store/slices/user/user';
 
 const InitPage = () => {
     const [username, setUsername] = useState<string>('');

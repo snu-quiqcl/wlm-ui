@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { AppDispatch } from '../../store';
-import { eventListActions, EventType, selectEventList } from '../../store/slices/event/event';
+import { AppDispatch } from '../../../../store';
+import { eventListActions, EventType, selectEventList } from '../../../../store/slices/event/event';
 import './EventList.scss';
 
 const EventList = () => {
