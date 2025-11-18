@@ -20,6 +20,7 @@ export interface UserType {
 
 export interface UserInfo {
     user: UserType | null;
+    isSignedIn?: boolean;
 };
 
 const initialState: UserInfo = {
@@ -47,12 +48,20 @@ export const userSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
+            .addCase(signin.pending, (state) => {
+                state.isSignedIn = undefined;
+            })
             .addCase(signin.fulfilled, (state, action) => {
                 state.user = action.payload.user;
+                state.isSignedIn = true;
                 localStorage.setItem('user.user', JSON.stringify(state.user));
+            })
+            .addCase(signin.rejected, (state) => {
+                state.isSignedIn = false;
             })
             .addCase(signout.fulfilled, (state) => {
                 state.user = null;
+                state.isSignedIn = undefined;
                 localStorage.clear()
             })
     },

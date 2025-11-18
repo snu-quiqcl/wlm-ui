@@ -1,30 +1,25 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
+import Stack from '@mui/material/Stack';
 
-import { AppDispatch } from '../../store';
-import { signout } from '../../store/slices/user/user';
-import { calibrate } from '../../store/slices/calibration/calibration';
+import AppNavBar from './components/AppNavBar/AppNavBar';
 import ChannelList from './components/ChannelList/ChannelList';
 import EventList from './components/EventList/EventList';
 
 const MainPage = () => {
-    const dispatch = useDispatch<AppDispatch>();
-
-    const onClickSignout = async () => {
-        dispatch(signout());
-    };
-
-    const onClickCalibration = async () => {
-        dispatch(calibrate());
-    };
-
     return (
-        <div>
-            <button onClick={onClickCalibration}>Calibrate</button>
-            <button onClick={onClickSignout}>Sign out</button>
-            <ChannelList />
-            <EventList />
-        </div>
+        <Stack
+            spacing={3}
+            sx={{ paddingBottom: 3 }}
+        >
+            <AppNavBar />
+            <Stack
+                spacing={4}
+                sx={{ paddingX: 3 }}
+            >
+                <ChannelList />
+                <EventList />
+            </Stack>
+        </Stack>
     );
 };
 
