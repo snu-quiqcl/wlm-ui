@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { ResponsiveLine } from '@nivo/line';
 import Box from '@mui/material/Box';
@@ -119,12 +119,12 @@ const Channel = (props: Props) => {
     useEffect(() => {
         const channel = props.channel.channel;
 
-        const interval = setInterval(() => {
+        const intervalId = setInterval(() => {
             dispatch(channelListActions.removeOldMeasurements({ channel: channel }));
         }, 10 * 60 * 1000);
 
         return () => {
-            clearInterval(interval);
+            clearInterval(intervalId);
             dispatch(channelListActions.removeAllMeasurements({ channel: channel }));
         };
     }, [dispatch, props.channel.channel]);
@@ -150,18 +150,18 @@ const Channel = (props: Props) => {
     }, [props.measurements]);
 
     useEffect(() => {
-        let interval: NodeJS.Timer | undefined;
+        let intervalId: NodeJS.Timer | undefined;
 
         if (shouldUpdatePlot) {
             setIsTimeSliderEnabled(false);
 
-            interval = setInterval(() => {
+            intervalId = setInterval(() => {
                 const now = Date.now();
                 const cutoffTime = new Date(now - TIME_RANGE).getTime();
                 setTimeWindow([cutoffTime, now]);
             }, 100);
         } else {
-            clearInterval(interval);
+            clearInterval(intervalId);
 
             if (measurementsRef.current.length) {
                 const startTime = new Date(measurementsRef.current[0].measuredAt).getTime();
@@ -183,7 +183,7 @@ const Channel = (props: Props) => {
             }
         }
 
-        return () => clearInterval(interval);
+        return () => clearInterval(intervalId);
     }, [shouldUpdatePlot]);
 
     useEffect(() => {
