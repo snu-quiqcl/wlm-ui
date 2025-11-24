@@ -57,7 +57,7 @@ const Channel = (props: Props) => {
     const [timeSliderRange, setTimeSliderRange] = useState<number[]>([]);
     const [timeSliderMarks, setTimeSliderMarks] = useState<{ value: number, label: string }[]>([]);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
-    const canUpdateSettings = !props.lock.locked || (props.hasLock && isLockButtonEnabled);
+    const canUpdateSettings = props.hasLock && isLockButtonEnabled;
     const exposureId = `channel-${props.channel.channel}-exposure`;
     const periodId = `channel-${props.channel.channel}-period`;
     const measurementsRef = useRef(props.measurements);
@@ -388,7 +388,12 @@ const Channel = (props: Props) => {
                         >
                             <Switch
                                 checked={props.hasLock}
-                                disabled={!canUpdateSettings}
+                                disabled={
+                                    !(
+                                        isLockButtonEnabled &&
+                                        (!props.lock.locked || props.hasLock)
+                                    )
+                                }
                                 size='small'
                                 onChange={() => {
                                     setIsLockButtonEnabled(false);
