@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - develop
-      - BECATRUE/31/deployment-test
 
 jobs:
   docker:
