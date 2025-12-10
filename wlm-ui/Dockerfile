@@ -15,7 +15,7 @@ COPY --from=build /app/build /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY ssl /etc/nginx/ssl
 
-RUN chown -R nginx:nginx /usr/share/nginx/html /etc/nginx /var/cache/nginx /var/run /var/log/nginx
+RUN chown -R nginx:nginx /usr/share/nginx/html /etc/nginx /var/cache/nginx /var/log/nginx
 
 USER nginx
 
