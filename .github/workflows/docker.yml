@@ -1,0 +1,31 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup SSL certificates
+      working-directory: wlm-ui
+      env:
+        FULLCHAIN_PEM: ${{ secrets.FULLCHAIN_PEM }}
+        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      run: |
+        mkdir ssl
+        echo "${{ env.FULLCHAIN_PEM }}" > ssl/fullchain.pem
+        echo "${{ env.PRIVATE_KEY }}" > ssl/private.key
+    - name: Sign in to Docker Hub
+      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef  # v3.6.0
+      with:
+        username: ${{ vars.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+    - name: Build Docker image
+      working-directory: wlm-ui
+      run: docker build -t ${{ vars.DOCKER_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest .
+    - name: Push Docker image to Docker Hub
+      run: docker push ${{ vars.DOCKER_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest

@@ -12,7 +12,7 @@ const initialState: CalibrationInfo = {};
 export const calibrate = createAsyncThunk(
     'calibration',
     async () => {
-        await axios.post('/calibration/');
+        await axios.post('/api/calibration/');
     },
 );
 

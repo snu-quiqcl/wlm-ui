@@ -30,7 +30,7 @@ const initialState: UserInfo = {
 export const signin = createAsyncThunk(
     'user/signin',
     async (user: Pick<UserType, 'username' | 'password'>) => {
-        const response = await axios.post('/user/signin/', user);
+        const response = await axios.post('/api/user/signin/', user);
         return response.data;
     },
 );
@@ -38,7 +38,7 @@ export const signin = createAsyncThunk(
 export const signout = createAsyncThunk(
     'user/signout',
     async () => {
-        await axios.post('/user/signout/');
+        await axios.post('/api/user/signout/');
     },
 );
 
