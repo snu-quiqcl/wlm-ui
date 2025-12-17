@@ -1,35 +1,27 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { ResponsiveLine } from '@nivo/line';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Collapse from '@mui/material/Collapse';
-import FormControl from '@mui/material/FormControl';
-import Grid from '@mui/material/Grid2';
 import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import Skeleton from '@mui/material/Skeleton';
-import Slider from '@mui/material/Slider';
 import Stack from '@mui/material/Stack';
-import Switch from '@mui/material/Switch';
-import TextField from '@mui/material/TextField';
-import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
 import MuiCard from '@mui/material/Card';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import LockIcon from '@mui/icons-material/Lock';
-import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { styled } from '@mui/material/styles';
 import { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 
 import { AppDispatch } from '../../../../store';
 import {
-    channelListActions, OperationType, SettingType, MeasurementType, LockType, ChannelInfo,
-    postInUse, postSetting, tryLock, releaseLock,
+    ChannelInfo,
+    SettingType,
+    postInUse,
+    postSetting,
+    tryLock,
+    releaseLock,
 } from '../../../../store/slices/channel/channel';
-
-const TIME_RANGE = 30 * 1000;
+import { useChannelSockets } from './hooks/useChannelSockets';
+import { useMeasurementWindow } from './hooks/useMeasurementWindow';
+import ChannelHeader from './components/ChannelHeader';
+import FrequencyPanel from './components/FrequencyPanel';
+import SettingsPanel from './components/SettingsPanel';
 
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
@@ -45,195 +37,30 @@ const Card = styled(MuiCard)(({ theme }) => ({
 type Props = ChannelInfo & { dragHandleProps: DraggableProvidedDragHandleProps | null };
 
 const Channel = (props: Props) => {
-    const [isOperationSocketConnected, setIsOperationSocketConnected] = useState<boolean>(false);
-    const [isLockSocketConnected, setIsLockSocketConnected] = useState<boolean>(false);
-    const [isMeasurementSocketConnected,
-        setIsMeasurementSocketConnected] = useState<boolean>(false);
-    const [isSettingSocketConnected, setIsSettingSocketConnected] = useState<boolean>(false);
-    const areAllSocketsConnected = isOperationSocketConnected && isLockSocketConnected &&
-        isMeasurementSocketConnected && isSettingSocketConnected;
-    const [requestersText, setRequestersText] = useState<string>('');
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
-    const [lockText, setLockText] = useState<string>('');
     const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
     const [isFrequencyOpen, setIsFrequencyOpen] = useState<boolean>(false);
-    const [latestMeasurementText, setLatestMeasurementText] = useState<string>('');
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
-    const [measurements, setMeasurements] = useState<{ x: Date, y: number | null }[]>([]);
-    const [timeWindow, setTimeWindow] = useState<number[]>([Date.now() - TIME_RANGE, Date.now()]);
-    const [isTimeSliderEnabled, setIsTimeSliderEnabled] = useState<boolean>(false);
-    const [timeSliderRange, setTimeSliderRange] = useState<number[]>([]);
-    const [timeSliderMarks, setTimeSliderMarks] = useState<{ value: number, label: string }[]>([]);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
-    const canUpdateSettings = props.hasLock && isLockButtonEnabled;
-    const exposureId = `channel-${props.channel.channel}-exposure`;
-    const periodId = `channel-${props.channel.channel}-period`;
-    const measurementsRef = useRef(props.measurements);
+    const [requestersText, setRequestersText] = useState<string>('');
+    const [lockText, setLockText] = useState<string>('');
+
     const dispatch = useDispatch<AppDispatch>();
+    const channel = props.channel.channel;
 
-    useEffect(() => {
-        const channel = props.channel.channel;
-        const socket = new WebSocket(`/ws/operation/${channel}/`);
+    const { areAllSocketsConnected } = useChannelSockets(channel);
 
-        socket.onopen = () => {
-            setIsOperationSocketConnected(true);
-        };
+    const {
+        latestMeasurementText,
+        chartData,
+        timeWindow,
+        isTimeSliderEnabled,
+        timeSliderRange,
+        timeSliderMarks,
+        handleTimeSlider,
+    } = useMeasurementWindow(props.measurements, shouldUpdatePlot);
 
-        socket.onmessage = event => {
-            const data = JSON.parse(event.data) as OperationType;
-            dispatch(channelListActions.fetchOperation(
-                { channel: channel, operation: data }));
-        };
-
-        socket.onclose = () => {
-            setIsOperationSocketConnected(false);
-        };
-
-        return () => socket.close();
-    }, [dispatch, props.channel.channel]);
-
-    useEffect(() => {
-        const channel = props.channel.channel;
-        const socket = new WebSocket(`/ws/lock/${channel}/`);
-
-        socket.onopen = () => {
-            setIsLockSocketConnected(true);
-        };
-
-        socket.onmessage = event => {
-            const data = JSON.parse(event.data) as LockType;
-            dispatch(channelListActions.fetchLock(
-                { channel: channel, lock: data }));
-        };
-
-        socket.onclose = () => {
-            setIsOperationSocketConnected(false);
-        };
-
-        return () => socket.close();
-    }, [dispatch, props.channel.channel]);
-
-    useEffect(() => {
-        const channel = props.channel.channel;
-        const socket = new WebSocket(`/ws/measurement/${channel}/`);
-
-        socket.onopen = () => {
-            setIsMeasurementSocketConnected(true);
-        };
-
-        socket.onmessage = event => {
-            const data = JSON.parse(event.data) as MeasurementType | MeasurementType[];
-            dispatch(channelListActions.fetchMeasurements(
-                { channel: channel, measurements: data }));
-        };
-
-        socket.onclose = () => {
-            setIsMeasurementSocketConnected(false);
-        };
-
-        return () => socket.close();
-    }, [dispatch, props.channel.channel]);
-
-    useEffect(() => {
-        const channel = props.channel.channel;
-        const socket = new WebSocket(`/ws/setting/${channel}/`);
-
-        socket.onopen = () => {
-            setIsSettingSocketConnected(true);
-        };
-
-        socket.onmessage = event => {
-            const data = JSON.parse(event.data) as Partial<SettingType>;
-            dispatch(channelListActions.fetchSetting(
-                { channel: channel, ...data }));
-        };
-
-        socket.onclose = () => {
-            setIsSettingSocketConnected(false);
-        };
-
-        return () => socket.close();
-    }, [dispatch, props.channel.channel]);
-
-    useEffect(() => {
-        const channel = props.channel.channel;
-
-        const intervalId = setInterval(() => {
-            dispatch(channelListActions.removeOldMeasurements({ channel: channel }));
-        }, 10 * 60 * 1000);
-
-        return () => {
-            clearInterval(intervalId);
-            dispatch(channelListActions.removeAllMeasurements({ channel: channel }));
-        };
-    }, [dispatch, props.channel.channel]);
-
-    useEffect(() => {
-        measurementsRef.current = props.measurements;
-        const latestMeasurement = props.measurements.at(-1);
-
-        if (latestMeasurement !== undefined) {
-            const { frequency, error } = latestMeasurement;
-            if (frequency !== null) {
-                setLatestMeasurementText(`${(frequency / 1e12).toFixed(6)} THz`);
-            } else if (error === 'over') {
-                setLatestMeasurementText('Overexposed');
-            } else if (error === 'under') {
-                setLatestMeasurementText('Underexposed');
-            } else {
-                setLatestMeasurementText('Error')
-            }
-        } else{
-            setLatestMeasurementText('');
-        }
-    }, [props.measurements]);
-
-    useEffect(() => {
-        let intervalId: NodeJS.Timer | undefined;
-
-        if (shouldUpdatePlot) {
-            setIsTimeSliderEnabled(false);
-
-            intervalId = setInterval(() => {
-                const now = Date.now();
-                const cutoffTime = new Date(now - TIME_RANGE).getTime();
-                setTimeWindow([cutoffTime, now]);
-            }, 100);
-        } else {
-            clearInterval(intervalId);
-
-            if (measurementsRef.current.length) {
-                const startTime = new Date(measurementsRef.current[0].measuredAt).getTime();
-                const endTime = new Date(measurementsRef.current.at(-1)!.measuredAt).getTime();
-                setIsTimeSliderEnabled(true);
-                setTimeSliderRange([startTime, endTime]);
-                const startTimeCeil = Math.ceil(startTime / TIME_RANGE) * TIME_RANGE;
-                const endTimeFloor = Math.floor(endTime / TIME_RANGE) * TIME_RANGE;
-                setTimeSliderMarks(Array.from(
-                    { length: (endTimeFloor - startTimeCeil) / TIME_RANGE + 1 },
-                    (_, i) => startTimeCeil + i * TIME_RANGE,
-                ).map(t => {
-                    if (t % (4 * TIME_RANGE)) {
-                        return { value: t, label: '' };
-                    } else {
-                        return { value: t, label: `${new Date(t).getMinutes()}` };
-                    }
-                }));
-            }
-        }
-
-        return () => clearInterval(intervalId);
-    }, [shouldUpdatePlot]);
-
-    useEffect(() => {
-        setMeasurements(measurementsRef.current.filter(measurement => {
-            const timestamp = new Date(measurement.measuredAt).getTime();
-            return timeWindow[0] < timestamp && timestamp < timeWindow[1];
-        }).map(measurement => ({
-            x: new Date(measurement.measuredAt),
-            y: measurement.frequency,
-        })));
-    }, [timeWindow]);
+    const canUpdateSettings = props.hasLock && isLockButtonEnabled;
 
     useEffect(() => {
         const requesters = props.operation.requesters;
@@ -269,54 +96,29 @@ const Channel = (props: Props) => {
     }, [props.hasLock]);
 
     const onClickSetInUse = (inUse: boolean) => {
-        dispatch(postInUse({ channel: props.channel.channel, inUse: inUse }));
+        dispatch(postInUse({ channel: channel, inUse: inUse }));
     };
 
     const onClickTryLock = () => {
-        dispatch(tryLock({ channel: props.channel.channel }));
+        dispatch(tryLock({ channel: channel }));
     };
 
     const onClickReleaseLock = () => {
-        dispatch(releaseLock({ channel: props.channel.channel }));
-    };
-
-    const handleTimeSlider = (event: Event, value: number | number[], activeThumb: number) => {
-        if (!Array.isArray(value)) {
-            return;
-        }
-        
-        if (value[1] - value[0] < TIME_RANGE) {
-            if (activeThumb === 0) {
-                const clamped = Math.min(value[0], timeSliderRange[1] - TIME_RANGE);
-                setTimeWindow([clamped, clamped + TIME_RANGE]);
-            } else {
-                const clamped = Math.max(value[1], timeSliderRange[0] + TIME_RANGE);
-                setTimeWindow([clamped - TIME_RANGE, clamped]);
-            }
-        } else {
-            setTimeWindow(value);
-        }
-    };
-
-    const getExposure = () => {
-        const exposureText = document.getElementById(exposureId) as HTMLInputElement;
-        if (!exposureText.value) {
-            return;
-        }
-        return Number(exposureText.value) / 1e3;
-    };
-
-    const getPeriod = () => {
-        const periodText = document.getElementById(periodId) as HTMLInputElement;
-        if (!periodText.value) {
-            return;
-        }
-        return Number(periodText.value);
+        dispatch(releaseLock({ channel: channel }));
     };
 
     const handleSetting = (setting: Partial<SettingType>) => {
         if (setting.exposure || setting.period) {
-            dispatch(postSetting({ channel: props.channel.channel, ...setting }));
+            dispatch(postSetting({ channel: channel, ...setting }));
+        }
+    };
+
+    const handleLockToggle = () => {
+        setIsLockButtonEnabled(false);
+        if (props.hasLock) {
+            onClickReleaseLock();
+        } else {
+            onClickTryLock();
         }
     };
 
@@ -331,474 +133,48 @@ const Channel = (props: Props) => {
                 },
             })}
         >
-            <Stack
-                direction='row'
-                sx={{ justifyContent: 'space-between', alignItems: 'center' }}
-            >
-                <Stack
-                    sx={{ alignItems: 'flex-start' }}
-                >
-                    <Typography
-                        component='h1'
-                        variant='h6'
-                        sx={{ fontWeight: 'bold' }}
-                    >
-                        Channel {props.channel.channel}
-                    </Typography>
-                    <Typography component='h2' variant='subtitle1'>
-                        {props.channel.name}
-                    </Typography>
-                </Stack>
-                {areAllSocketsConnected ? (
-                    <Grid
-                        container
-                        sx={{ width: 140 }}
-                    >
-                        <Grid
-                            container
-                            size={12}
-                            sx={{ display: 'flex', alignItems: 'center' }}
-                        >
-                            <Grid
-                                size={5.5}
-                                sx={{ display: 'flex', justifyContent: 'flex-start' }}
-                            >
-                                <Tooltip title={requestersText} placement='top'>
-                                    <Typography variant='overline'>
-                                        {props.operation.on ? 'on' : 'off'}
-                                    </Typography>
-                                </Tooltip>
-                            </Grid>
-                            <Grid
-                                size={2}
-                                sx={{ display: 'flex', justifyContent: 'center' }}
-                            >
-                                <Box
-                                    sx={{
-                                        width: '12px',
-                                        height: '12px',
-                                        backgroundColor: props.operation.on ? 'green' : 'grey',
-                                        borderRadius: '50%',
-                                    }}
-                                />
-                            </Grid>
-                            <Grid
-                                size={4.5}
-                                sx={{ display: 'flex', justifyContent: 'flex-end' }}
-                            >
-                                <Switch
-                                    checked={props.inUse}
-                                    disabled={!isInUseButtonEnabled}
-                                    size='small'
-                                    onChange={() => {
-                                        setIsInUseButtonEnabled(false);
-                                        onClickSetInUse(props.inUse);
-                                    }}
-                                />
-                            </Grid>
-                        </Grid>
-                        <Grid
-                            container
-                            size={12}
-                            sx={{ display: 'flex', alignItems: 'center' }}
-                        >
-                            <Grid
-                                size={5.5}
-                                sx={{ display: 'flex', justifyContent: 'flex-start' }}
-                            >
-                                <Tooltip title={lockText} placement='top'>
-                                    <Typography variant='overline'>
-                                        {props.lock.locked ? 'LOCKED' : 'OPEN'}
-                                    </Typography>
-                                </Tooltip>
-                            </Grid>
-                            <Grid
-                                size={2}
-                                sx={{ display: 'flex', justifyContent: 'center' }}
-                            >
-                                {props.lock.locked ? (
-                                    <LockIcon fontSize='small' />
-                                ) : (
-                                    <LockOpenIcon fontSize='small' />
-                                )}
-                            </Grid>
-                            <Grid
-                                size={4.5}
-                                sx={{ display: 'flex', justifyContent: 'flex-end' }}
-                            >
-                                <Switch
-                                    checked={props.hasLock}
-                                    disabled={
-                                        !(
-                                            isLockButtonEnabled &&
-                                            (!props.lock.locked || props.hasLock)
-                                        )
-                                    }
-                                    size='small'
-                                    onChange={() => {
-                                        setIsLockButtonEnabled(false);
-                                        if (props.hasLock) {
-                                            onClickReleaseLock();
-                                        } else {
-                                            onClickTryLock();
-                                        }
-                                    }}
-                                />
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                ) : (
-                    <Skeleton variant='rounded' width={140} height={50} />
-                )}
-            </Stack>
+            <ChannelHeader
+                channel={channel}
+                channelName={props.channel.name}
+                operation={props.operation}
+                lock={props.lock}
+                inUse={props.inUse}
+                hasLock={props.hasLock}
+                isInUseButtonEnabled={isInUseButtonEnabled}
+                isLockButtonEnabled={isLockButtonEnabled}
+                areAllSocketsConnected={areAllSocketsConnected}
+                requestersText={requestersText}
+                lockText={lockText}
+                onInUseChange={onClickSetInUse}
+                onLockToggle={handleLockToggle}
+                onInUseButtonEnabledChange={setIsInUseButtonEnabled}
+            />
             {areAllSocketsConnected ? (
-                <Stack>
-                    <Stack
-                        direction='row'
-                        sx={{ justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                        <Typography variant='subtitle2'>
-                            Frequency
-                        </Typography>
-                        <IconButton
-                            onClick={() => setIsFrequencyOpen(!isFrequencyOpen)}
-                            sx={{
-                                transform: isFrequencyOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                                transition: 'transform 0.3s ease',
-                            }}
-                        >
-                            <ExpandMoreIcon />
-                        </IconButton>
-                    </Stack>
-                    <Collapse
-                        in={isFrequencyOpen}
-                        sx={{ marginTop: 1 }}
-                    >
-                        <Stack
-                            spacing={1}
-                            sx={{ alignItems: 'center' }}
-                        >
-                            <Stack
-                                direction='row'
-                                spacing={2}
-                                sx={{ justifyContent: 'flex-start', alignItems: 'center' }}
-                            >
-                                <Typography
-                                    variant='subtitle1'
-                                    sx={{ width: '130px', textAlign: 'left' }}
-                                >
-                                    {latestMeasurementText}
-                                </Typography>
-                                <Stack
-                                    direction='row'
-                                    spacing={1}
-                                    sx={{ alignItems: 'center' }}
-                                >
-                                    <Typography variant='body2'>
-                                        Live
-                                    </Typography>
-                                    <Switch
-                                        checked={shouldUpdatePlot}
-                                        size='small'
-                                        onChange={() => setShouldUpdatePlot(!shouldUpdatePlot)}
-                                    />
-                                </Stack>
-                            </Stack>
-                            <Box
-                                sx={{ width: '90%', height: '300px' }}
-                            >
-                                <ResponsiveLine
-                                    data={[
-                                        {
-                                            id: 'measurement',
-                                            data: measurements,
-                                        },
-                                    ]}
-                                    xScale={{
-                                        type: 'time',
-                                        precision: 'millisecond',
-                                        min: new Date(timeWindow[0]),
-                                        max: new Date(timeWindow[1]),
-                                    }}
-                                    xFormat='time:%M:%S.%L'
-                                    yScale={{
-                                        type: 'linear',
-                                        min: 'auto',
-                                        max: 'auto',
-                                        nice: true,
-                                    }}
-                                    yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
-                                    margin={{
-                                        top: 10,
-                                        right: 30,
-                                        bottom: 30,
-                                        left: 80,
-                                    }}
-                                    curve='monotoneX'
-                                    lineWidth={2}
-                                    enablePoints
-                                    pointSize={6}
-                                    pointColor={{ from: 'color' }}
-                                    pointBorderWidth={1}
-                                    pointBorderColor='#fff'
-                                    enableGridX
-                                    enableGridY
-                                    axisBottom={{
-                                        format: '%M:%S',
-                                    }}
-                                    axisLeft={{
-                                        format: value => (Number(value) / 1e12).toFixed(6).split('.')[1],
-                                        legend: 'Frequency (MHz)',
-                                        legendOffset: -70,
-                                        legendPosition: 'middle',
-                                    }}
-                                    isInteractive
-                                    enableSlices='x'
-                                    sliceTooltip={({ slice }) => (
-                                        <Card
-                                            sx={{ width: '160px', padding: 1 }}
-                                        >
-                                            <Grid container>
-                                                <Grid
-                                                    container
-                                                    size={12}
-                                                    sx={{ alignItems: 'center' }}
-                                                >
-                                                    <Grid
-                                                        size={3.5}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'center'
-                                                        }}
-                                                    >
-                                                        <Typography
-                                                            variant='caption'
-                                                            sx={{ fontWeight: 'bold' }}
-                                                        >
-                                                            Time
-                                                        </Typography>
-                                                    </Grid>
-                                                    <Grid 
-                                                        size={8.5}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'flex-start'
-                                                        }}
-                                                    >
-                                                        <Typography variant='caption'>
-                                                            {slice.points[0].data.xFormatted}
-                                                        </Typography>
-                                                    </Grid>
-                                                </Grid>
-                                                <Grid
-                                                    container
-                                                    size={12}
-                                                    sx={{ alignItems: 'center' }}
-                                                >
-                                                    <Grid
-                                                        size={3.5}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'center'
-                                                        }}
-                                                    >
-                                                        <Typography
-                                                            variant='caption'
-                                                            sx={{ fontWeight: 'bold' }}
-                                                        >
-                                                            Freq
-                                                        </Typography>
-                                                    </Grid>
-                                                    <Grid 
-                                                        size={8.5}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'flex-start'
-                                                        }}
-                                                    >
-                                                        <Typography variant='caption'>
-                                                            {slice.points[0].data.yFormatted}
-                                                        </Typography>
-                                                    </Grid>
-                                                </Grid>
-                                            </Grid>
-                                        </Card>
-                                    )}
-                                    enableCrosshair
-                                    animate={false}
-                                />
-                            </Box>
-                            <Slider
-                                size='small'
-                                value={timeWindow}
-                                min={timeSliderRange[0]}
-                                max={timeSliderRange[1]}
-                                marks={timeSliderMarks}
-                                valueLabelDisplay='off'
-                                disableSwap
-                                onChange={handleTimeSlider}
-                                sx={{
-                                    display: isTimeSliderEnabled ? 'block' : 'none',
-                                    width: '80%',
-                                }}
-                            />
-                        </Stack>
-                    </Collapse>
-                </Stack>
+                <FrequencyPanel
+                    isOpen={isFrequencyOpen}
+                    onToggle={() => setIsFrequencyOpen(!isFrequencyOpen)}
+                    latestMeasurementText={latestMeasurementText}
+                    shouldUpdatePlot={shouldUpdatePlot}
+                    onShouldUpdatePlotChange={setShouldUpdatePlot}
+                    chartData={chartData}
+                    timeWindow={timeWindow}
+                    isTimeSliderEnabled={isTimeSliderEnabled}
+                    timeSliderRange={timeSliderRange}
+                    timeSliderMarks={timeSliderMarks}
+                    onTimeSliderChange={handleTimeSlider}
+                />
             ) : (
                 <Skeleton variant='rounded' height={50} />
             )}
             {areAllSocketsConnected ? (
-                <Stack>
-                    <Stack
-                        direction='row'
-                        sx={{ justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                        <Typography variant='subtitle2'>
-                            Settings
-                        </Typography>
-                        <IconButton
-                            onClick={() => setIsSettingOpen(!isSettingOpen)}
-                            sx={{
-                                transform: isSettingOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                                transition: 'transform 0.3s ease',
-                            }}
-                        >
-                            <ExpandMoreIcon />
-                        </IconButton>
-                    </Stack>
-                    <Collapse
-                        in={isSettingOpen}
-                        sx={{ marginTop: 1 }}
-                    >
-                        <Stack
-                            spacing={1}
-                        >
-                            <Stack
-                                direction='row'
-                                spacing={4}
-                                sx={{ justifyContent: 'center', alignItems: 'center' }}
-                            >
-                                <Stack
-                                    direction='row'
-                                    spacing={1}
-                                    sx={{ alignItems: 'center' }}
-                                >
-                                    <Typography
-                                        variant='subtitle2'
-                                        sx={{ fontWeight: 'bold' }}
-                                    >
-                                        Exp. time
-                                    </Typography>
-                                    <Typography variant='body2'>
-                                        {props.setting.exposure * 1e3} ms
-                                    </Typography>
-                                </Stack>
-                                <Stack
-                                    direction='row'
-                                    spacing={1}
-                                    sx={{ alignItems: 'center' }}
-                                >
-                                    <Typography
-                                        variant='subtitle2'
-                                        sx={{ fontWeight: 'bold' }}
-                                    >
-                                        Period
-                                    </Typography>
-                                    <Typography variant='body2'>
-                                        {props.setting.period} s
-                                    </Typography>
-                                </Stack>
-                            </Stack>
-                            <Stack
-                                direction='row'
-                                spacing={2}
-                                sx={{
-                                    justifyContent: 'space-between',
-                                    alignItems: 'flex-end',
-                                    pointerEvents: canUpdateSettings ? 'auto' : 'none',
-                                    opacity: canUpdateSettings ? 1 : 0.5,
-                                }}
-                            >
-                                <Box
-                                    component='form'
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        handleSetting({ exposure: getExposure() });
-                                    }}
-                                    sx={{ width: '40%' }}
-                                >
-                                    <FormControl>
-                                        <TextField
-                                            id={exposureId}
-                                            label='Exposure'
-                                            placeholder='100'
-                                            variant='standard'
-                                            size='small'
-                                            autoFocus
-                                            fullWidth
-                                            slotProps={{
-                                                htmlInput: { style: { fontSize: '0.8rem' } },
-                                                inputLabel: { style: { fontSize: '0.8rem' } },
-                                                input: {
-                                                    endAdornment: (
-                                                        <InputAdornment position="end">
-                                                            <Typography sx={{ fontSize: '0.8rem' }}>
-                                                                ms
-                                                            </Typography>
-                                                        </InputAdornment>
-                                                    ),
-                                                },
-                                            }}
-                                        />
-                                    </FormControl>
-                                </Box>
-                                <Box
-                                    component='form'
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        handleSetting({ period: getPeriod() });
-                                    }}
-                                    sx={{ width: '40%' }}
-                                >
-                                    <FormControl>
-                                        <TextField
-                                            id={periodId}
-                                            label='Period'
-                                            placeholder='1'
-                                            variant='standard'
-                                            size='small'
-                                            autoFocus
-                                            fullWidth
-                                            slotProps={{
-                                                htmlInput: { style: { fontSize: '0.8rem' } },
-                                                inputLabel: { style: { fontSize: '0.8rem' } },
-                                                input: {
-                                                    endAdornment:
-                                                        <InputAdornment position="end">
-                                                            <Typography sx={{ fontSize: '0.8rem' }}>
-                                                                s
-                                                            </Typography>
-                                                        </InputAdornment>,
-                                                },
-                                            }}
-                                        />
-                                    </FormControl>
-                                </Box>
-                                <Button
-                                    variant='contained'
-                                    size='small'
-                                    sx={{ fontSize: '0.8rem', marginBottom: 0.3, padding: 0 }}
-                                    onClick={() => {
-                                        handleSetting({ exposure: getExposure(), period: getPeriod() });
-                                    }}
-                                >
-                                    apply
-                                </Button>
-                            </Stack>
-                        </Stack>
-                    </Collapse>
-                </Stack>
+                <SettingsPanel
+                    isOpen={isSettingOpen}
+                    onToggle={() => setIsSettingOpen(!isSettingOpen)}
+                    setting={props.setting}
+                    canUpdateSettings={canUpdateSettings}
+                    channel={channel}
+                    onSettingChange={handleSetting}
+                />
             ) : (
                 <Skeleton variant='rounded' height={50} />
             )}
