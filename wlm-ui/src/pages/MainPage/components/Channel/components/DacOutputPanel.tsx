@@ -9,8 +9,8 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import { PidType } from '../../../../../store/slices/channel/channel';
 import { useChannelSockets } from '../hooks/useChannelSockets';
 
@@ -173,6 +173,7 @@ const DacOutputPanel = ({
                     >
                         <Box sx={{ px: 1 }}>
                             <Slider
+                                size='small'
                                 value={sliderValue}
                                 min={MIN_VOLTAGE}
                                 max={MAX_VOLTAGE}
@@ -181,6 +182,10 @@ const DacOutputPanel = ({
                                 onChangeCommitted={handleSliderChangeCommitted}
                                 valueLabelDisplay='auto'
                                 valueLabelFormat={(value) => `${value.toFixed(4)} V`}
+                                marks={[
+                                    { value: MIN_VOLTAGE },
+                                    { value: MAX_VOLTAGE },
+                                ]}
                             />
                         </Box>
                         <Stack
@@ -226,7 +231,7 @@ const DacOutputPanel = ({
                                     disabled={pid.dacOutput.voltage >= MAX_VOLTAGE}
                                     sx={{ border: '1px solid', borderColor: 'divider' }}
                                 >
-                                    <ArrowUpwardIcon fontSize='small' />
+                                    <AddIcon fontSize='small' />
                                 </IconButton>
                                 <IconButton
                                     size='small'
@@ -234,7 +239,7 @@ const DacOutputPanel = ({
                                     disabled={pid.dacOutput.voltage <= MIN_VOLTAGE}
                                     sx={{ border: '1px solid', borderColor: 'divider' }}
                                 >
-                                    <ArrowDownwardIcon fontSize='small' />
+                                    <RemoveIcon fontSize='small' />
                                 </IconButton>
                             </Stack>
                             <Box sx={{ width: '80px' }}>
