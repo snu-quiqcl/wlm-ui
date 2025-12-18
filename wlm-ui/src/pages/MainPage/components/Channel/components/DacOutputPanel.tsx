@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
 import FormControl from '@mui/material/FormControl';
@@ -16,6 +16,7 @@ import { useChannelSockets } from '../hooks/useChannelSockets';
 
 const MIN_VOLTAGE = 0;
 const MAX_VOLTAGE = 2.5;
+const DEBOUNCE_DELAY_MS = 300;
 
 type Props = {
     isOpen: boolean;
@@ -38,6 +39,7 @@ const DacOutputPanel = ({
     const voltageId = `channel-${channel}-voltage`;
     const stepId = `channel-${channel}-step`;
     const { sendDacVoltage } = useChannelSockets(channel);
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         setSliderValue(pid.dacOutput.voltage);
@@ -52,8 +54,33 @@ const DacOutputPanel = ({
         const voltage = newValue as number;
         setSliderValue(voltage);
         setInputValue(voltage.toFixed(4));
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+            handleVoltageChange(voltage);
+        }, DEBOUNCE_DELAY_MS);
+    };
+
+    const handleSliderChangeCommitted = (
+        _event: Event | React.SyntheticEvent,
+        newValue: number | number[],
+    ) => {
+        const voltage = newValue as number;
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+        }
         handleVoltageChange(voltage);
     };
+
+    useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, []);
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(event.target.value);
@@ -141,6 +168,7 @@ const DacOutputPanel = ({
                                 max={MAX_VOLTAGE}
                                 step={0.01}
                                 onChange={handleSliderChange}
+                                onChangeCommitted={handleSliderChangeCommitted}
                                 valueLabelDisplay='auto'
                                 valueLabelFormat={(value) => `${value.toFixed(4)} V`}
                             />
