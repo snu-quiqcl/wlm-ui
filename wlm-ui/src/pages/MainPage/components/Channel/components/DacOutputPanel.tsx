@@ -86,6 +86,16 @@ const DacOutputPanel = ({
         setInputValue(event.target.value);
     };
 
+    const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            handleArrowUp();
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            handleArrowDown();
+        }
+    };
+
     const handleInputSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         const voltage = Number(inputValue);
@@ -192,6 +202,7 @@ const DacOutputPanel = ({
                                         size='small'
                                         value={inputValue}
                                         onChange={handleInputChange}
+                                        onKeyDown={handleInputKeyDown}
                                         slotProps={{
                                             htmlInput: { style: { fontSize: '0.8rem' } },
                                             inputLabel: { style: { fontSize: '0.8rem' } },
