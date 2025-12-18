@@ -40,10 +40,13 @@ const DacOutputPanel = ({
     const stepId = `channel-${channel}-step`;
     const { sendDacVoltage } = useChannelSockets(channel);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const isUserInteractingRef = useRef<boolean>(false);
 
     useEffect(() => {
-        setSliderValue(pid.dacOutput.voltage);
-        setInputValue(pid.dacOutput.voltage.toFixed(4));
+        if (!isUserInteractingRef.current) {
+            setSliderValue(pid.dacOutput.voltage);
+            setInputValue(pid.dacOutput.voltage.toFixed(4));
+        }
     }, [pid.dacOutput.voltage]);
 
     const handleVoltageChange = (voltage: number) => {
@@ -52,6 +55,7 @@ const DacOutputPanel = ({
 
     const handleSliderChange = (_event: Event, newValue: number | number[]) => {
         const voltage = newValue as number;
+        isUserInteractingRef.current = true;
         setSliderValue(voltage);
         setInputValue(voltage.toFixed(4));
         if (debounceTimerRef.current) {
@@ -59,6 +63,7 @@ const DacOutputPanel = ({
         }
         debounceTimerRef.current = setTimeout(() => {
             handleVoltageChange(voltage);
+            isUserInteractingRef.current = false;
         }, DEBOUNCE_DELAY_MS);
     };
 
@@ -72,6 +77,7 @@ const DacOutputPanel = ({
             debounceTimerRef.current = null;
         }
         handleVoltageChange(voltage);
+        isUserInteractingRef.current = false;
     };
 
     useEffect(() => {
@@ -100,8 +106,12 @@ const DacOutputPanel = ({
         event.preventDefault();
         const voltage = Number(inputValue);
         if (!isNaN(voltage) && voltage >= MIN_VOLTAGE && voltage <= MAX_VOLTAGE) {
+            isUserInteractingRef.current = true;
             setSliderValue(voltage);
             handleVoltageChange(voltage);
+            setTimeout(() => {
+                isUserInteractingRef.current = false;
+            }, DEBOUNCE_DELAY_MS);
         } else {
             setInputValue(pid.dacOutput.voltage.toFixed(4));
         }
@@ -115,17 +125,27 @@ const DacOutputPanel = ({
     };
 
     const handleArrowUp = () => {
-        const newVoltage = Math.min(MAX_VOLTAGE, pid.dacOutput.voltage + step);
+        const currentVoltage = Number(inputValue) || sliderValue;
+        const newVoltage = Math.min(MAX_VOLTAGE, currentVoltage + step);
+        isUserInteractingRef.current = true;
         setSliderValue(newVoltage);
         setInputValue(newVoltage.toFixed(4));
         handleVoltageChange(newVoltage);
+        setTimeout(() => {
+            isUserInteractingRef.current = false;
+        }, DEBOUNCE_DELAY_MS);
     };
 
     const handleArrowDown = () => {
-        const newVoltage = Math.max(MIN_VOLTAGE, pid.dacOutput.voltage - step);
+        const currentVoltage = Number(inputValue) || sliderValue;
+        const newVoltage = Math.max(MIN_VOLTAGE, currentVoltage - step);
+        isUserInteractingRef.current = true;
         setSliderValue(newVoltage);
         setInputValue(newVoltage.toFixed(4));
         handleVoltageChange(newVoltage);
+        setTimeout(() => {
+            isUserInteractingRef.current = false;
+        }, DEBOUNCE_DELAY_MS);
     };
 
     return (
@@ -228,7 +248,7 @@ const DacOutputPanel = ({
                                 <IconButton
                                     size='small'
                                     onClick={handleArrowUp}
-                                    disabled={pid.dacOutput.voltage >= MAX_VOLTAGE}
+                                    disabled={(Number(inputValue) || sliderValue) >= MAX_VOLTAGE}
                                     sx={{ border: '1px solid', borderColor: 'divider' }}
                                 >
                                     <AddIcon fontSize='small' />
@@ -236,7 +256,7 @@ const DacOutputPanel = ({
                                 <IconButton
                                     size='small'
                                     onClick={handleArrowDown}
-                                    disabled={pid.dacOutput.voltage <= MIN_VOLTAGE}
+                                    disabled={(Number(inputValue) || sliderValue) <= MIN_VOLTAGE}
                                     sx={{ border: '1px solid', borderColor: 'divider' }}
                                 >
                                     <RemoveIcon fontSize='small' />
