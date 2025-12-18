@@ -1,0 +1,234 @@
+import React, { useState, useEffect } from 'react';
+import Box from '@mui/material/Box';
+import Collapse from '@mui/material/Collapse';
+import FormControl from '@mui/material/FormControl';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import Slider from '@mui/material/Slider';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import { PidType } from '../../../../../store/slices/channel/channel';
+import { useChannelSockets } from '../hooks/useChannelSockets';
+
+const MIN_VOLTAGE = 0;
+const MAX_VOLTAGE = 2.5;
+
+type Props = {
+    isOpen: boolean;
+    onToggle: () => void;
+    pid: PidType;
+    canUpdateSettings: boolean;
+    channel: number;
+};
+
+const DacOutputPanel = ({
+    isOpen,
+    onToggle,
+    pid,
+    canUpdateSettings,
+    channel,
+}: Props) => {
+    const [step, setStep] = useState<number>(0.01);
+    const [sliderValue, setSliderValue] = useState<number>(pid.dacOutput.voltage);
+    const [inputValue, setInputValue] = useState<string>(pid.dacOutput.voltage.toFixed(4));
+    const voltageId = `channel-${channel}-voltage`;
+    const stepId = `channel-${channel}-step`;
+    const { sendDacVoltage } = useChannelSockets(channel);
+
+    useEffect(() => {
+        setSliderValue(pid.dacOutput.voltage);
+        setInputValue(pid.dacOutput.voltage.toFixed(4));
+    }, [pid.dacOutput.voltage]);
+
+    const handleVoltageChange = (voltage: number) => {
+        sendDacVoltage(voltage);
+    };
+
+    const handleSliderChange = (_event: Event, newValue: number | number[]) => {
+        const voltage = newValue as number;
+        setSliderValue(voltage);
+        setInputValue(voltage.toFixed(4));
+        handleVoltageChange(voltage);
+    };
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setInputValue(event.target.value);
+    };
+
+    const handleInputSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        const voltage = Number(inputValue);
+        if (!isNaN(voltage) && voltage >= MIN_VOLTAGE && voltage <= MAX_VOLTAGE) {
+            setSliderValue(voltage);
+            handleVoltageChange(voltage);
+        } else {
+            setInputValue(pid.dacOutput.voltage.toFixed(4));
+        }
+    };
+
+    const handleStepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newStep = Number(event.target.value);
+        if (!isNaN(newStep) && newStep > 0) {
+            setStep(newStep);
+        }
+    };
+
+    const handleArrowUp = () => {
+        const newVoltage = Math.min(MAX_VOLTAGE, pid.dacOutput.voltage + step);
+        setSliderValue(newVoltage);
+        setInputValue(newVoltage.toFixed(4));
+        handleVoltageChange(newVoltage);
+    };
+
+    const handleArrowDown = () => {
+        const newVoltage = Math.max(MIN_VOLTAGE, pid.dacOutput.voltage - step);
+        setSliderValue(newVoltage);
+        setInputValue(newVoltage.toFixed(4));
+        handleVoltageChange(newVoltage);
+    };
+
+    return (
+        <Stack>
+            <Stack
+                direction='row'
+                sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+            >
+                <Typography variant='subtitle2'>
+                    DAC Output
+                </Typography>
+                <IconButton
+                    onClick={onToggle}
+                    sx={{
+                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.3s ease',
+                    }}
+                >
+                    <ExpandMoreIcon />
+                </IconButton>
+            </Stack>
+            <Collapse in={isOpen} sx={{ marginTop: 1 }}>
+                <Stack spacing={1}>
+                    <Stack
+                        direction='row'
+                        spacing={1}
+                        sx={{ justifyContent: 'center', alignItems: 'center' }}
+                    >
+                        <Typography
+                            variant='subtitle2'
+                            sx={{ fontWeight: 'bold' }}
+                        >
+                            Voltage
+                        </Typography>
+                        <Typography variant='body2'>
+                            {pid.dacOutput.voltage.toFixed(4)} V
+                        </Typography>
+                    </Stack>
+                    <Stack
+                        spacing={2}
+                        sx={{
+                            pointerEvents: canUpdateSettings ? 'auto' : 'none',
+                            opacity: canUpdateSettings ? 1 : 0.5,
+                        }}
+                    >
+                        <Box sx={{ px: 1 }}>
+                            <Slider
+                                value={sliderValue}
+                                min={MIN_VOLTAGE}
+                                max={MAX_VOLTAGE}
+                                step={0.01}
+                                onChange={handleSliderChange}
+                                valueLabelDisplay='auto'
+                                valueLabelFormat={(value) => `${value.toFixed(4)} V`}
+                            />
+                        </Box>
+                        <Stack
+                            direction='row'
+                            spacing={2}
+                            sx={{ alignItems: 'flex-end' }}
+                        >
+                            <Box
+                                component='form'
+                                onSubmit={handleInputSubmit}
+                                sx={{ flex: 1 }}
+                            >
+                                <FormControl fullWidth>
+                                    <TextField
+                                        id={voltageId}
+                                        label='Voltage'
+                                        placeholder='0.0000'
+                                        variant='standard'
+                                        size='small'
+                                        value={inputValue}
+                                        onChange={handleInputChange}
+                                        slotProps={{
+                                            htmlInput: { style: { fontSize: '0.8rem' } },
+                                            inputLabel: { style: { fontSize: '0.8rem' } },
+                                            input: {
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <Typography sx={{ fontSize: '0.8rem' }}>
+                                                            V
+                                                        </Typography>
+                                                    </InputAdornment>
+                                                ),
+                                            },
+                                        }}
+                                    />
+                                </FormControl>
+                            </Box>
+                            <Stack direction='row' spacing={0.5}>
+                                <IconButton
+                                    size='small'
+                                    onClick={handleArrowUp}
+                                    disabled={pid.dacOutput.voltage >= MAX_VOLTAGE}
+                                    sx={{ border: '1px solid', borderColor: 'divider' }}
+                                >
+                                    <ArrowUpwardIcon fontSize='small' />
+                                </IconButton>
+                                <IconButton
+                                    size='small'
+                                    onClick={handleArrowDown}
+                                    disabled={pid.dacOutput.voltage <= MIN_VOLTAGE}
+                                    sx={{ border: '1px solid', borderColor: 'divider' }}
+                                >
+                                    <ArrowDownwardIcon fontSize='small' />
+                                </IconButton>
+                            </Stack>
+                            <Box sx={{ width: '80px' }}>
+                                <FormControl fullWidth>
+                                    <TextField
+                                        id={stepId}
+                                        label='Step'
+                                        variant='standard'
+                                        size='small'
+                                        value={step}
+                                        onChange={handleStepChange}
+                                        slotProps={{
+                                            htmlInput: { style: { fontSize: '0.8rem' } },
+                                            inputLabel: { style: { fontSize: '0.8rem' } },
+                                            input: {
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <Typography sx={{ fontSize: '0.8rem' }}>
+                                                            V
+                                                        </Typography>
+                                                    </InputAdornment>
+                                                ),
+                                            },
+                                        }}
+                                    />
+                                </FormControl>
+                            </Box>
+                        </Stack>
+                    </Stack>
+                </Stack>
+            </Collapse>
+        </Stack>
+    );
+};
+
+export default DacOutputPanel;
