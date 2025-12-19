@@ -16,7 +16,7 @@ import { useChannelSockets } from '../hooks/useChannelSockets';
 
 const MIN_VOLTAGE = 0;
 const MAX_VOLTAGE = 2.5;
-const DEBOUNCE_DELAY_MS = 300;
+const DEBOUNCE_DELAY_MS = 2000;
 
 type Props = {
     isOpen: boolean;
