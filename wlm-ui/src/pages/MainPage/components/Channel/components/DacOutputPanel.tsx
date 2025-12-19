@@ -109,7 +109,10 @@ const DacOutputPanel = ({
             setIsUserInteracting(true);
             setSliderValue(voltage);
             handleVoltageChange(voltage);
-            setTimeout(() => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+            debounceTimerRef.current = setTimeout(() => {
                 setIsUserInteracting(false);
             }, DEBOUNCE_DELAY_MS);
         } else {
@@ -131,7 +134,10 @@ const DacOutputPanel = ({
         setSliderValue(newVoltage);
         setInputValue(newVoltage.toFixed(4));
         handleVoltageChange(newVoltage);
-        setTimeout(() => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
             setIsUserInteracting(false);
         }, DEBOUNCE_DELAY_MS);
     };
@@ -143,7 +149,10 @@ const DacOutputPanel = ({
         setSliderValue(newVoltage);
         setInputValue(newVoltage.toFixed(4));
         handleVoltageChange(newVoltage);
-        setTimeout(() => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
             setIsUserInteracting(false);
         }, DEBOUNCE_DELAY_MS);
     };
