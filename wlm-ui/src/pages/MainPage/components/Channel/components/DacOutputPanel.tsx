@@ -36,18 +36,18 @@ const DacOutputPanel = ({
     const [step, setStep] = useState<number>(0.01);
     const [sliderValue, setSliderValue] = useState<number>(pid.dacOutput.voltage);
     const [inputValue, setInputValue] = useState<string>(pid.dacOutput.voltage.toFixed(4));
+    const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
     const voltageId = `channel-${channel}-voltage`;
     const stepId = `channel-${channel}-step`;
     const { sendDacVoltage } = useChannelSockets(channel);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const isUserInteractingRef = useRef<boolean>(false);
 
     useEffect(() => {
-        if (!isUserInteractingRef.current) {
+        if (!isUserInteracting) {
             setSliderValue(pid.dacOutput.voltage);
             setInputValue(pid.dacOutput.voltage.toFixed(4));
         }
-    }, [pid.dacOutput.voltage]);
+    }, [pid.dacOutput.voltage, isUserInteracting]);
 
     const handleVoltageChange = (voltage: number) => {
         sendDacVoltage(voltage);
@@ -55,7 +55,7 @@ const DacOutputPanel = ({
 
     const handleSliderChange = (_event: Event, newValue: number | number[]) => {
         const voltage = newValue as number;
-        isUserInteractingRef.current = true;
+        setIsUserInteracting(true);
         setSliderValue(voltage);
         setInputValue(voltage.toFixed(4));
         if (debounceTimerRef.current) {
@@ -63,7 +63,7 @@ const DacOutputPanel = ({
         }
         debounceTimerRef.current = setTimeout(() => {
             handleVoltageChange(voltage);
-            isUserInteractingRef.current = false;
+            setIsUserInteracting(false);
         }, DEBOUNCE_DELAY_MS);
     };
 
@@ -77,7 +77,7 @@ const DacOutputPanel = ({
             debounceTimerRef.current = null;
         }
         handleVoltageChange(voltage);
-        isUserInteractingRef.current = false;
+        setIsUserInteracting(false);
     };
 
     useEffect(() => {
@@ -106,11 +106,11 @@ const DacOutputPanel = ({
         event.preventDefault();
         const voltage = Number(inputValue);
         if (!isNaN(voltage) && voltage >= MIN_VOLTAGE && voltage <= MAX_VOLTAGE) {
-            isUserInteractingRef.current = true;
+            setIsUserInteracting(true);
             setSliderValue(voltage);
             handleVoltageChange(voltage);
             setTimeout(() => {
-                isUserInteractingRef.current = false;
+                setIsUserInteracting(false);
             }, DEBOUNCE_DELAY_MS);
         } else {
             setInputValue(pid.dacOutput.voltage.toFixed(4));
@@ -127,24 +127,24 @@ const DacOutputPanel = ({
     const handleArrowUp = () => {
         const currentVoltage = Number(inputValue) || sliderValue;
         const newVoltage = Math.min(MAX_VOLTAGE, currentVoltage + step);
-        isUserInteractingRef.current = true;
+        setIsUserInteracting(true);
         setSliderValue(newVoltage);
         setInputValue(newVoltage.toFixed(4));
         handleVoltageChange(newVoltage);
         setTimeout(() => {
-            isUserInteractingRef.current = false;
+            setIsUserInteracting(false);
         }, DEBOUNCE_DELAY_MS);
     };
 
     const handleArrowDown = () => {
         const currentVoltage = Number(inputValue) || sliderValue;
         const newVoltage = Math.max(MIN_VOLTAGE, currentVoltage - step);
-        isUserInteractingRef.current = true;
+        setIsUserInteracting(true);
         setSliderValue(newVoltage);
         setInputValue(newVoltage.toFixed(4));
         handleVoltageChange(newVoltage);
         setTimeout(() => {
-            isUserInteractingRef.current = false;
+            setIsUserInteracting(false);
         }, DEBOUNCE_DELAY_MS);
     };
 
