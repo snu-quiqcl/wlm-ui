@@ -58,26 +58,13 @@ const DacOutputPanel = ({
         setIsUserInteracting(true);
         setSliderValue(voltage);
         setInputValue(voltage.toFixed(4));
+        handleVoltageChange(voltage);
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
         debounceTimerRef.current = setTimeout(() => {
-            handleVoltageChange(voltage);
             setIsUserInteracting(false);
         }, DEBOUNCE_DELAY_MS);
-    };
-
-    const handleSliderChangeCommitted = (
-        _event: Event | React.SyntheticEvent,
-        newValue: number | number[],
-    ) => {
-        const voltage = newValue as number;
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-            debounceTimerRef.current = null;
-        }
-        handleVoltageChange(voltage);
-        setIsUserInteracting(false);
     };
 
     useEffect(() => {
@@ -208,7 +195,6 @@ const DacOutputPanel = ({
                                 max={MAX_VOLTAGE}
                                 step={0.01}
                                 onChange={handleSliderChange}
-                                onChangeCommitted={handleSliderChangeCommitted}
                                 valueLabelDisplay='auto'
                                 valueLabelFormat={(value) => `${value.toFixed(4)} V`}
                                 marks={[
