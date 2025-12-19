@@ -34,6 +34,7 @@ const DacOutputPanel = ({
     channel,
 }: Props) => {
     const [step, setStep] = useState<number>(0.01);
+    const [stepInputValue, setStepInputValue] = useState<string>('0.01');
     const [sliderValue, setSliderValue] = useState<number>(pid.dacOutput.voltage);
     const [inputValue, setInputValue] = useState<string>(pid.dacOutput.voltage.toFixed(4));
     const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
@@ -108,9 +109,16 @@ const DacOutputPanel = ({
     };
 
     const handleStepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newStep = Number(event.target.value);
+        setStepInputValue(event.target.value);
+    };
+
+    const handleStepBlur = () => {
+        const newStep = Number(stepInputValue);
         if (!isNaN(newStep) && newStep > 0) {
             setStep(newStep);
+            setStepInputValue(newStep.toString());
+        } else {
+            setStepInputValue(step.toString());
         }
     };
 
@@ -264,8 +272,9 @@ const DacOutputPanel = ({
                                         label='Step'
                                         variant='standard'
                                         size='small'
-                                        value={step}
+                                        value={stepInputValue}
                                         onChange={handleStepChange}
+                                        onBlur={handleStepBlur}
                                         slotProps={{
                                             htmlInput: { style: { fontSize: '0.8rem' } },
                                             inputLabel: { style: { fontSize: '0.8rem' } },
