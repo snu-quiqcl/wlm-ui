@@ -122,6 +122,13 @@ const DacOutputPanel = ({
         }
     };
 
+    const handleStepKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            handleStepBlur();
+        }
+    };
+
     const handleArrowUp = () => {
         const currentVoltage = Number(inputValue) || sliderValue;
         const newVoltage = Math.min(MAX_VOLTAGE, currentVoltage + step);
@@ -275,6 +282,7 @@ const DacOutputPanel = ({
                                         value={stepInputValue}
                                         onChange={handleStepChange}
                                         onBlur={handleStepBlur}
+                                        onKeyDown={handleStepKeyDown}
                                         slotProps={{
                                             htmlInput: { style: { fontSize: '0.8rem' } },
                                             inputLabel: { style: { fontSize: '0.8rem' } },
