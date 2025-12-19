@@ -122,11 +122,9 @@ const DacOutputPanel = ({
         }
     };
 
-    const handleStepKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            handleStepBlur();
-        }
+    const handleStepSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        handleStepBlur();
     };
 
     const handleArrowUp = () => {
@@ -272,7 +270,11 @@ const DacOutputPanel = ({
                                     <RemoveIcon fontSize='small' />
                                 </IconButton>
                             </Stack>
-                            <Box sx={{ width: '80px' }}>
+                            <Box
+                                component='form'
+                                onSubmit={handleStepSubmit}
+                                sx={{ width: '80px' }}
+                            >
                                 <FormControl fullWidth>
                                     <TextField
                                         id={stepId}
@@ -282,7 +284,6 @@ const DacOutputPanel = ({
                                         value={stepInputValue}
                                         onChange={handleStepChange}
                                         onBlur={handleStepBlur}
-                                        onKeyDown={handleStepKeyDown}
                                         slotProps={{
                                             htmlInput: { style: { fontSize: '0.8rem' } },
                                             inputLabel: { style: { fontSize: '0.8rem' } },
