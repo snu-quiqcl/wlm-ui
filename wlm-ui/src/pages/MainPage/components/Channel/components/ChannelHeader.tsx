@@ -26,9 +26,8 @@ type Props = {
     requestersText: string;
     lockText: string;
     onInUseChange: (inUse: boolean) => void;
-    onLockToggle: () => void;
-    onPidToggle: () => void;
-    onInUseButtonEnabledChange: (enabled: boolean) => void;
+    onLockToggle: (hasLock: boolean) => void;
+    onPidToggle: (hasPid: boolean) => void;
 };
 
 const ChannelHeader = ({
@@ -49,7 +48,6 @@ const ChannelHeader = ({
     onInUseChange,
     onLockToggle,
     onPidToggle,
-    onInUseButtonEnabledChange,
 }: Props) => {
     return (
         <Stack
@@ -107,7 +105,6 @@ const ChannelHeader = ({
                                 disabled={!isInUseButtonEnabled}
                                 size='small'
                                 onChange={() => {
-                                    onInUseButtonEnabledChange(false);
                                     onInUseChange(inUse);
                                 }}
                             />
@@ -152,7 +149,7 @@ const ChannelHeader = ({
                                 }
                                 size='small'
                                 onChange={() => {
-                                    onLockToggle();
+                                    onLockToggle(hasLock);
                                 }}
                             />
                         </Grid>
@@ -193,14 +190,14 @@ const ChannelHeader = ({
                                     !(
                                         isPidButtonEnabled &&
                                         (
-                                            (!pid.on && !hasPid && inUse && hasLock) ||
-                                            (pid.on && hasPid)
+                                            (!pid.on && inUse && hasLock) ||
+                                            hasPid
                                         )
                                     )
                                 }
                                 size='small'
                                 onChange={() => {
-                                    onPidToggle();
+                                    onPidToggle(hasPid);
                                 }}
                             />
                         </Grid>
