@@ -21,7 +21,7 @@ type Props = {
     isOpen: boolean;
     onToggle: () => void;
     pid: PidType;
-    canUpdateSettings: boolean;
+    canControlDac: boolean;
     channel: number;
     sendVoltage: (voltage: number) => void;
 };
@@ -30,7 +30,7 @@ const DacOutputPanel = ({
     isOpen,
     onToggle,
     pid,
-    canUpdateSettings,
+    canControlDac,
     channel,
     sendVoltage,
 }: Props) => {
@@ -196,8 +196,8 @@ const DacOutputPanel = ({
                     <Stack
                         spacing={2}
                         sx={{
-                            pointerEvents: canUpdateSettings ? 'auto' : 'none',
-                            opacity: canUpdateSettings ? 1 : 0.5,
+                            pointerEvents: canControlDac ? 'auto' : 'none',
+                            opacity: canControlDac ? 1 : 0.5,
                         }}
                     >
                         <Box sx={{ px: 1 }}>

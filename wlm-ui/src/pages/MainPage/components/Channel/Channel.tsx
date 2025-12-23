@@ -14,6 +14,7 @@ import {
     SettingType,
     postInUse,
     postSetting,
+    postPidOperation,
     tryLock,
     releaseLock,
 } from '../../../../store/slices/channel/channel';
@@ -40,6 +41,7 @@ type Props = ChannelInfo & { dragHandleProps: DraggableProvidedDragHandleProps |
 const Channel = (props: Props) => {
     const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
     const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
+    const [isPidButtonEnabled, setIsPidButtonEnabled] = useState<boolean>(true);
     const [isFrequencyOpen, setIsFrequencyOpen] = useState<boolean>(false);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
@@ -63,6 +65,7 @@ const Channel = (props: Props) => {
     } = useMeasurementWindow(props.measurements, shouldUpdatePlot);
 
     const canUpdateSettings = props.hasLock && isLockButtonEnabled;
+    const canControlDac = canUpdateSettings && !props.hasPid && isPidButtonEnabled;
 
     useEffect(() => {
         const requesters = props.operation.requesters;
@@ -97,7 +100,12 @@ const Channel = (props: Props) => {
         setIsLockButtonEnabled(true);
     }, [props.hasLock]);
 
+    useEffect(() => {
+        setIsPidButtonEnabled(true);
+    }, [props.hasPid]);
+
     const onClickSetInUse = (inUse: boolean) => {
+        setIsInUseButtonEnabled(false);
         dispatch(postInUse({ channel: channel, inUse: inUse }));
     };
 
@@ -115,13 +123,18 @@ const Channel = (props: Props) => {
         }
     };
 
-    const handleLockToggle = () => {
+    const handleLockToggle = (hasLock: boolean) => {
         setIsLockButtonEnabled(false);
-        if (props.hasLock) {
+        if (hasLock) {
             onClickReleaseLock();
         } else {
             onClickTryLock();
         }
+    };
+
+    const handlePidToggle = (hasPid: boolean) => {
+        setIsPidButtonEnabled(false);
+        dispatch(postPidOperation({ channel: channel, hasPid: hasPid }));
     };
 
     return (
@@ -140,16 +153,19 @@ const Channel = (props: Props) => {
                 channelName={props.channel.name}
                 operation={props.operation}
                 lock={props.lock}
+                pid={props.pid}
                 inUse={props.inUse}
                 hasLock={props.hasLock}
+                hasPid={props.hasPid}
                 isInUseButtonEnabled={isInUseButtonEnabled}
                 isLockButtonEnabled={isLockButtonEnabled}
+                isPidButtonEnabled={isPidButtonEnabled}
                 areAllSocketsConnected={areAllSocketsConnected}
                 requestersText={requestersText}
                 lockText={lockText}
                 onInUseChange={onClickSetInUse}
                 onLockToggle={handleLockToggle}
-                onInUseButtonEnabledChange={setIsInUseButtonEnabled}
+                onPidToggle={handlePidToggle}
             />
             {areAllSocketsConnected ? (
                 <FrequencyPanel
@@ -185,7 +201,7 @@ const Channel = (props: Props) => {
                     isOpen={isDacOutputOpen}
                     onToggle={() => setIsDacOutputOpen(!isDacOutputOpen)}
                     pid={props.pid}
-                    canUpdateSettings={canUpdateSettings}
+                    canControlDac={canControlDac}
                     channel={channel}
                     sendVoltage={sendDacVoltage}
                 />
