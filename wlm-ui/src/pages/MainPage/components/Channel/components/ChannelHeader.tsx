@@ -102,7 +102,12 @@ const ChannelHeader = ({
                         >
                             <Switch
                                 checked={inUse}
-                                disabled={!isInUseButtonEnabled}
+                                disabled={
+                                    !(
+                                        isInUseButtonEnabled &&
+                                        !hasPid
+                                    )
+                                }
                                 size='small'
                                 onChange={() => {
                                     onInUseChange(inUse);
@@ -144,7 +149,8 @@ const ChannelHeader = ({
                                 disabled={
                                     !(
                                         isLockButtonEnabled &&
-                                        (!lock.locked || hasLock)
+                                        (!lock.locked || hasLock) &&
+                                        !hasPid
                                     )
                                 }
                                 size='small'
@@ -189,10 +195,8 @@ const ChannelHeader = ({
                                 disabled={
                                     !(
                                         isPidButtonEnabled &&
-                                        (
-                                            (!pid.on && inUse && hasLock) ||
-                                            hasPid
-                                        )
+                                        inUse &&
+                                        hasLock
                                     )
                                 }
                                 size='small'
