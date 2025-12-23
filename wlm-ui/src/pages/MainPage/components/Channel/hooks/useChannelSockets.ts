@@ -5,6 +5,7 @@ import {
     channelListActions,
     OperationType,
     SettingType,
+    PidType,
     MeasurementType,
     LockType,
 } from '../../../../../store/slices/channel/channel';
@@ -13,6 +14,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
     const dispatch = useDispatch<AppDispatch>();
     const [isOperationSocketConnected, setIsOperationSocketConnected] = useState<boolean>(false);
     const [isLockSocketConnected, setIsLockSocketConnected] = useState<boolean>(false);
+    const [isPidOperationSocketConnected, setIsPidOperationSocketConnected] = useState<boolean>(false);
     const [isMeasurementSocketConnected, setIsMeasurementSocketConnected] = useState<boolean>(false);
     const [isSettingSocketConnected, setIsSettingSocketConnected] = useState<boolean>(false);
     const [isDacOutputSocketConnected, setIsDacOutputSocketConnected] = useState<boolean>(false);
@@ -22,6 +24,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
     const areAllSocketsConnected =
         isOperationSocketConnected &&
         isLockSocketConnected &&
+        isPidOperationSocketConnected &&
         isMeasurementSocketConnected &&
         isSettingSocketConnected &&
         isDacOutputSocketConnected;
@@ -59,6 +62,25 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
 
         socket.onclose = () => {
             setIsLockSocketConnected(false);
+        };
+
+        return () => socket.close();
+    }, [dispatch, channel]);
+
+    useEffect(() => {
+        const socket = new WebSocket(`/ws/pid_operation/${channel}/`);
+
+        socket.onopen = () => {
+            setIsPidOperationSocketConnected(true);
+        };
+
+        socket.onmessage = event => {
+            const data = JSON.parse(event.data) as PidType;
+            dispatch(channelListActions.fetchPidOperation({ channel: channel, pid: data }));
+        };
+
+        socket.onclose = () => {
+            setIsPidOperationSocketConnected(false);
         };
 
         return () => socket.close();
@@ -176,6 +198,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         areAllSocketsConnected,
         isOperationSocketConnected,
         isLockSocketConnected,
+        isPidOperationSocketConnected,
         isMeasurementSocketConnected,
         isSettingSocketConnected,
         isDacOutputSocketConnected,
