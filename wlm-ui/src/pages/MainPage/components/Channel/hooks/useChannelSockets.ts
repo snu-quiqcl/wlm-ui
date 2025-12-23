@@ -6,6 +6,7 @@ import {
     OperationType,
     SettingType,
     PidType,
+    DacOutputType,
     MeasurementType,
     LockType,
 } from '../../../../../store/slices/channel/channel';
@@ -75,8 +76,8 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         };
 
         socket.onmessage = event => {
-            const data = JSON.parse(event.data) as PidType;
-            dispatch(channelListActions.fetchPidOperation({ channel: channel, pid: data }));
+            const data = JSON.parse(event.data) as Pick<PidType, 'on'>;
+            dispatch(channelListActions.fetchPidOperation({ channel: channel, ...data }));
         };
 
         socket.onclose = () => {
@@ -132,8 +133,8 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         };
 
         socket.onmessage = event => {
-            const data = JSON.parse(event.data) as { voltage: number };
-            dispatch(channelListActions.fetchPidDacOutput({ channel: channel, voltage: data.voltage }));
+            const data = JSON.parse(event.data) as Pick<DacOutputType, 'voltage'>;
+            dispatch(channelListActions.fetchPidDacOutput({ channel: channel, ...data }));
         };
 
         socket.onclose = () => {

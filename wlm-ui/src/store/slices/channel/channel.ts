@@ -149,21 +149,21 @@ export const channelListSlice = createSlice({
                 info.setting.period = period;
             }
         },
+        fetchPidOperation: (
+            state,
+            action: PayloadAction<Pick<ChannelType, 'channel'> & Pick<PidType, 'on'>>
+        ) => {
+            const { channel, on } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            info.pid.on = on;
+        },
         fetchPidDacOutput: (
             state,
-            action: PayloadAction<Pick<ChannelType, 'channel'> & { voltage: number }>
+            action: PayloadAction<Pick<ChannelType, 'channel'> & Pick<DacOutputType, 'voltage'>>
         ) => {
             const { channel, voltage } = action.payload;
             const info = getChannelInfoWithException(state, channel);
             info.pid.dacOutput.voltage = voltage;
-        },
-        fetchPidOperation: (
-            state,
-            action: PayloadAction<Pick<ChannelType, 'channel'> & { pid: PidType }>
-        ) => {
-            const { channel, pid } = action.payload;
-            const info = getChannelInfoWithException(state, channel);
-            info.pid = pid;
         },
         fetchMeasurements: (
             state,
