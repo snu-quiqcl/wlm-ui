@@ -9,7 +9,7 @@ import {
     LockType,
 } from '../../../../../store/slices/channel/channel';
 
-export const useChannelSockets = (channel: number) => {
+export const useChannelSockets = (channel: number, hasLock: boolean) => {
     const dispatch = useDispatch<AppDispatch>();
     const [isOperationSocketConnected, setIsOperationSocketConnected] = useState<boolean>(false);
     const [isLockSocketConnected, setIsLockSocketConnected] = useState<boolean>(false);
@@ -122,6 +122,15 @@ export const useChannelSockets = (channel: number) => {
     }, [dispatch, channel]);
 
     useEffect(() => {
+        if (!hasLock) {
+            if (dacControlSocketRef.current) {
+                dacControlSocketRef.current.close();
+                dacControlSocketRef.current = null;
+            }
+            setIsDacControlSocketConnected(false);
+            return;
+        }
+
         const socket = new WebSocket(`/ws/pid_setting/dac_control/${channel}/`);
         dacControlSocketRef.current = socket;
 
@@ -137,8 +146,11 @@ export const useChannelSockets = (channel: number) => {
             setIsDacControlSocketConnected(false);
         };
 
-        return () => socket.close();
-    }, [channel]);
+        return () => {
+            socket.close();
+            dacControlSocketRef.current = null;
+        };
+    }, [channel, hasLock]);
 
     const sendDacVoltage = (voltage: number) => {
         if (dacControlSocketRef.current?.readyState === WebSocket.OPEN) {

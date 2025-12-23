@@ -50,7 +50,7 @@ const Channel = (props: Props) => {
     const dispatch = useDispatch<AppDispatch>();
     const channel = props.channel.channel;
 
-    const { areAllSocketsConnected } = useChannelSockets(channel);
+    const { areAllSocketsConnected, sendDacVoltage } = useChannelSockets(channel, props.hasLock);
 
     const {
         latestMeasurementText,
@@ -187,6 +187,7 @@ const Channel = (props: Props) => {
                     pid={props.pid}
                     canUpdateSettings={canUpdateSettings}
                     channel={channel}
+                    sendVoltage={sendDacVoltage}
                 />
             ) : (
                 <Skeleton variant='rounded' height={50} />

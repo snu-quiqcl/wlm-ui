@@ -12,7 +12,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { PidType } from '../../../../../store/slices/channel/channel';
-import { useChannelSockets } from '../hooks/useChannelSockets';
 
 const MIN_VOLTAGE = 0;
 const MAX_VOLTAGE = 2.5;
@@ -24,6 +23,7 @@ type Props = {
     pid: PidType;
     canUpdateSettings: boolean;
     channel: number;
+    sendVoltage: (voltage: number) => void;
 };
 
 const DacOutputPanel = ({
@@ -32,6 +32,7 @@ const DacOutputPanel = ({
     pid,
     canUpdateSettings,
     channel,
+    sendVoltage,
 }: Props) => {
     const [step, setStep] = useState<number>(0.01);
     const [stepInputValue, setStepInputValue] = useState<string>('0.01');
@@ -40,7 +41,6 @@ const DacOutputPanel = ({
     const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
     const voltageId = `channel-${channel}-voltage`;
     const stepId = `channel-${channel}-step`;
-    const { sendDacVoltage } = useChannelSockets(channel);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -51,7 +51,7 @@ const DacOutputPanel = ({
     }, [pid.dacOutput.voltage, isUserInteracting]);
 
     const handleVoltageChange = (voltage: number) => {
-        sendDacVoltage(voltage);
+        sendVoltage(voltage);
     };
 
     const handleSliderChange = (_event: Event, newValue: number | number[]) => {
