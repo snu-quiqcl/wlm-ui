@@ -18,6 +18,14 @@ export interface SettingType {
     period: number;
 };
 
+export interface DacOutputType {
+    voltage: number;
+};
+
+export interface PidType {
+    dacOutput: DacOutputType;
+};
+
 export interface MeasurementType {
     frequency: number | null;
     error: string | null;
@@ -34,6 +42,7 @@ export interface ChannelInfo {
     inUse: boolean;
     operation: OperationType;
     setting: SettingType;
+    pid: PidType;
     measurements: MeasurementType[];
     hasLock: boolean;
     lock: LockType;
@@ -128,6 +137,14 @@ export const channelListSlice = createSlice({
                 info.setting.period = period;
             }
         },
+        fetchPidDacOutput: (
+            state,
+            action: PayloadAction<Pick<ChannelType, 'channel'> & { voltage: number }>
+        ) => {
+            const { channel, voltage } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            info.pid.dacOutput.voltage = voltage;
+        },
         fetchMeasurements: (
             state,
             action: PayloadAction<
@@ -169,6 +186,7 @@ export const channelListSlice = createSlice({
                         inUse: ch.inUse,
                         operation: info?.operation ?? { on: false, requesters: [] },
                         setting: info?.setting ?? { exposure: 0, period: 0 },
+                        pid: info?.pid ?? { dacOutput: { voltage: 0 } },
                         measurements: info?.measurements ?? [],
                         hasLock: ch.hasLock,
                         lock: info?.lock ?? { locked: false, owner: null },

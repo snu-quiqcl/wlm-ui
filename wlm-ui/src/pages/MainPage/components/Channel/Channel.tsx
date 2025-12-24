@@ -22,6 +22,7 @@ import { useMeasurementWindow } from './hooks/useMeasurementWindow';
 import ChannelHeader from './components/ChannelHeader';
 import FrequencyPanel from './components/FrequencyPanel';
 import SettingsPanel from './components/SettingsPanel';
+import DacOutputPanel from './components/DacOutputPanel';
 
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
@@ -42,13 +43,14 @@ const Channel = (props: Props) => {
     const [isFrequencyOpen, setIsFrequencyOpen] = useState<boolean>(false);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
+    const [isDacOutputOpen, setIsDacOutputOpen] = useState<boolean>(false);
     const [requestersText, setRequestersText] = useState<string>('');
     const [lockText, setLockText] = useState<string>('');
 
     const dispatch = useDispatch<AppDispatch>();
     const channel = props.channel.channel;
 
-    const { areAllSocketsConnected } = useChannelSockets(channel);
+    const { areAllSocketsConnected, sendDacVoltage } = useChannelSockets(channel, props.hasLock);
 
     const {
         latestMeasurementText,
@@ -174,6 +176,18 @@ const Channel = (props: Props) => {
                     canUpdateSettings={canUpdateSettings}
                     channel={channel}
                     onSettingChange={handleSetting}
+                />
+            ) : (
+                <Skeleton variant='rounded' height={50} />
+            )}
+            {areAllSocketsConnected ? (
+                <DacOutputPanel
+                    isOpen={isDacOutputOpen}
+                    onToggle={() => setIsDacOutputOpen(!isDacOutputOpen)}
+                    pid={props.pid}
+                    canUpdateSettings={canUpdateSettings}
+                    channel={channel}
+                    sendVoltage={sendDacVoltage}
                 />
             ) : (
                 <Skeleton variant='rounded' height={50} />
