@@ -206,13 +206,13 @@ const PidSettingPanel = ({
             kd?: number;
         } = {};
         if (kpInUi !== undefined && !isNaN(kpInUi)) {
-            setting.kp = kpInUi * COEFFICIENT_TO_UI;
+            setting.kp = kpInUi / COEFFICIENT_TO_UI;
         }
         if (kiInUi !== undefined && !isNaN(kiInUi)) {
-            setting.ki = kiInUi * COEFFICIENT_TO_UI;
+            setting.ki = kiInUi / COEFFICIENT_TO_UI;
         }
         if (kdInUi !== undefined && !isNaN(kdInUi)) {
-            setting.kd = kdInUi * COEFFICIENT_TO_UI;
+            setting.kd = kdInUi / COEFFICIENT_TO_UI;
         }
         if (Object.keys(setting).length > 0) {
             onPidSettingChange(setting);
