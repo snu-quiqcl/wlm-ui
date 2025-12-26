@@ -22,9 +22,17 @@ export interface DacOutputType {
     voltage: number;
 };
 
+export interface PidSettingType {
+    targetFrequency: number;
+    kp: number;
+    ki: number;
+    kd: number;
+};
+
 export interface PidType {
     on: boolean;
     dacOutput: DacOutputType;
+    setting: PidSettingType;
 };
 
 export interface MeasurementType {
@@ -107,6 +115,19 @@ export const postPidOperation = createAsyncThunk(
     },
 );
 
+export const postPidSetting = createAsyncThunk(
+    'channel/postPidSetting',
+    async (payload: Pick<ChannelType, 'channel'> & Partial<PidSettingType>) => {
+        const data = {
+            target_frequency: payload.targetFrequency,
+            kp: payload.kp,
+            ki: payload.ki,
+            kd: payload.kd,
+        }
+        await axios.post(`/api/pid_setting/${payload.channel}/`, data);
+    },
+);
+
 export const tryLock = createAsyncThunk(
     'channel/tryLock',
     async (payload: Pick<ChannelType, 'channel'>) => {
@@ -156,6 +177,25 @@ export const channelListSlice = createSlice({
             const { channel, on } = action.payload;
             const info = getChannelInfoWithException(state, channel);
             info.pid.on = on;
+        },
+        fetchPidSetting: (
+            state,
+            action: PayloadAction<Pick<ChannelType, 'channel'> & Partial<PidSettingType>>
+        ) => {
+            const { channel, targetFrequency, kp, ki, kd } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            if (targetFrequency !== undefined) {
+                info.pid.setting.targetFrequency = targetFrequency;
+            }
+            if (kp !== undefined) {
+                info.pid.setting.kp = kp;
+            }
+            if (ki !== undefined) {
+                info.pid.setting.ki = ki;
+            }
+            if (kd !== undefined) {
+                info.pid.setting.kd = kd;
+            }
         },
         fetchPidDacOutput: (
             state,
@@ -207,7 +247,16 @@ export const channelListSlice = createSlice({
                         operation: info?.operation ?? { on: false, requesters: [] },
                         setting: info?.setting ?? { exposure: 0, period: 0 },
                         hasPid: ch.hasPid,
-                        pid: info?.pid ?? { on: false, dacOutput: { voltage: 0 } },
+                        pid: info?.pid ?? { 
+                            on: false, 
+                            dacOutput: { voltage: 0 },
+                            setting: {
+                                targetFrequency: 0,
+                                kp: 0,
+                                ki: 0,
+                                kd: 0,
+                            },
+                        },
                         measurements: info?.measurements ?? [],
                         hasLock: ch.hasLock,
                         lock: info?.lock ?? { locked: false, owner: null },
