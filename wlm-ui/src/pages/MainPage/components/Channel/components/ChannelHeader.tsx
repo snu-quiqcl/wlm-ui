@@ -19,9 +19,9 @@ type Props = {
     inUse: boolean;
     hasLock: boolean;
     hasPid: boolean;
-    isInUseButtonEnabled: boolean;
-    isLockButtonEnabled: boolean;
-    isPidButtonEnabled: boolean;
+    isInUseRequestPending: boolean;
+    isLockRequestPending: boolean;
+    isPidRequestPending: boolean;
     areAllSocketsConnected: boolean;
     requestersText: string;
     lockText: string;
@@ -39,9 +39,9 @@ const ChannelHeader = ({
     inUse,
     hasLock,
     hasPid,
-    isInUseButtonEnabled,
-    isLockButtonEnabled,
-    isPidButtonEnabled,
+    isInUseRequestPending,
+    isLockRequestPending,
+    isPidRequestPending,
     areAllSocketsConnected,
     requestersText,
     lockText,
@@ -104,7 +104,7 @@ const ChannelHeader = ({
                                 checked={inUse}
                                 disabled={
                                     !(
-                                        isInUseButtonEnabled &&
+                                        !isInUseRequestPending &&
                                         !hasPid
                                     )
                                 }
@@ -148,7 +148,7 @@ const ChannelHeader = ({
                                 checked={hasLock}
                                 disabled={
                                     !(
-                                        isLockButtonEnabled &&
+                                        !isLockRequestPending &&
                                         (!lock.locked || hasLock) &&
                                         !hasPid
                                     )
@@ -194,7 +194,7 @@ const ChannelHeader = ({
                                 checked={hasPid}
                                 disabled={
                                     !(
-                                        isPidButtonEnabled &&
+                                        !isPidRequestPending &&
                                         inUse &&
                                         hasLock
                                     )

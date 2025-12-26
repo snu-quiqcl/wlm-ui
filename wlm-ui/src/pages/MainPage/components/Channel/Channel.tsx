@@ -39,9 +39,9 @@ const Card = styled(MuiCard)(({ theme }) => ({
 type Props = ChannelInfo & { dragHandleProps: DraggableProvidedDragHandleProps | null };
 
 const Channel = (props: Props) => {
-    const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
-    const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
-    const [isPidButtonEnabled, setIsPidButtonEnabled] = useState<boolean>(true);
+    const [isInUseRequestPending, setIsInUseRequestPending] = useState<boolean>(false);
+    const [isLockRequestPending, setIsLockRequestPending] = useState<boolean>(false);
+    const [isPidRequestPending, setIsPidRequestPending] = useState<boolean>(false);
     const [isFrequencyOpen, setIsFrequencyOpen] = useState<boolean>(false);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
@@ -64,8 +64,8 @@ const Channel = (props: Props) => {
         handleTimeSlider,
     } = useMeasurementWindow(props.measurements, shouldUpdatePlot);
 
-    const canUpdateSettings = props.hasLock && isLockButtonEnabled;
-    const canControlDac = canUpdateSettings && !props.hasPid && isPidButtonEnabled;
+    const canUpdateSettings = props.hasLock && !isLockRequestPending;
+    const canControlDac = canUpdateSettings && !props.hasPid && !isPidRequestPending;
 
     useEffect(() => {
         const requesters = props.operation.requesters;
@@ -83,7 +83,7 @@ const Channel = (props: Props) => {
     }, [props.operation.requesters]);
 
     useEffect(() => {
-        setIsInUseButtonEnabled(true);
+        setIsInUseRequestPending(false);
         setIsFrequencyOpen(props.inUse);
         setShouldUpdatePlot(props.inUse);
     }, [props.inUse]);
@@ -97,15 +97,15 @@ const Channel = (props: Props) => {
     }, [props.lock]);
 
     useEffect(() => {
-        setIsLockButtonEnabled(true);
+        setIsLockRequestPending(false);
     }, [props.hasLock]);
 
     useEffect(() => {
-        setIsPidButtonEnabled(true);
+        setIsPidRequestPending(false);
     }, [props.hasPid]);
 
     const onClickSetInUse = (inUse: boolean) => {
-        setIsInUseButtonEnabled(false);
+        setIsInUseRequestPending(true);
         dispatch(postInUse({ channel: channel, inUse: inUse }));
     };
 
@@ -124,7 +124,7 @@ const Channel = (props: Props) => {
     };
 
     const handleLockToggle = (hasLock: boolean) => {
-        setIsLockButtonEnabled(false);
+        setIsLockRequestPending(true);
         if (hasLock) {
             onClickReleaseLock();
         } else {
@@ -133,7 +133,7 @@ const Channel = (props: Props) => {
     };
 
     const handlePidToggle = (hasPid: boolean) => {
-        setIsPidButtonEnabled(false);
+        setIsPidRequestPending(true);
         dispatch(postPidOperation({ channel: channel, hasPid: hasPid }));
     };
 
@@ -157,9 +157,9 @@ const Channel = (props: Props) => {
                 inUse={props.inUse}
                 hasLock={props.hasLock}
                 hasPid={props.hasPid}
-                isInUseButtonEnabled={isInUseButtonEnabled}
-                isLockButtonEnabled={isLockButtonEnabled}
-                isPidButtonEnabled={isPidButtonEnabled}
+                isInUseRequestPending={isInUseRequestPending}
+                isLockRequestPending={isLockRequestPending}
+                isPidRequestPending={isPidRequestPending}
                 areAllSocketsConnected={areAllSocketsConnected}
                 requestersText={requestersText}
                 lockText={lockText}
