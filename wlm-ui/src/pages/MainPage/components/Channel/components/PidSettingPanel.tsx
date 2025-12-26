@@ -44,13 +44,13 @@ const PidSettingPanel = ({
     const [isFrequencyInteracting, setIsFrequencyInteracting] = useState<boolean>(false);
     const [isCoefficientsOpen, setIsCoefficientsOpen] = useState<boolean>(false);
     const [kpInputValue, setKpInputValue] = useState<string>(
-        (setting.kp * COEFFICIENT_TO_UI).toString(COEFFICIENT_DECIMAL_PLACES)
+        (setting.kp * COEFFICIENT_TO_UI).toFixed(COEFFICIENT_DECIMAL_PLACES)
     );
     const [kiInputValue, setKiInputValue] = useState<string>(
-        (setting.ki * COEFFICIENT_TO_UI).toString(COEFFICIENT_DECIMAL_PLACES)
+        (setting.ki * COEFFICIENT_TO_UI).toFixed(COEFFICIENT_DECIMAL_PLACES)
     );
     const [kdInputValue, setKdInputValue] = useState<string>(
-        (setting.kd * COEFFICIENT_TO_UI).toString(COEFFICIENT_DECIMAL_PLACES)
+        (setting.kd * COEFFICIENT_TO_UI).toFixed(COEFFICIENT_DECIMAL_PLACES)
     );
     const frequencyId = `channel-${channel}-frequency`;
     const frequencyStepId = `channel-${channel}-frequency-step`;
@@ -67,15 +67,15 @@ const PidSettingPanel = ({
     }, [setting.targetFrequency, isFrequencyInteracting]);
 
     useEffect(() => {
-        setKpInputValue((setting.kp * COEFFICIENT_TO_UI).toString(COEFFICIENT_DECIMAL_PLACES));
+        setKpInputValue((setting.kp * COEFFICIENT_TO_UI).toFixed(COEFFICIENT_DECIMAL_PLACES));
     }, [setting.kp]);
 
     useEffect(() => {
-        setKiInputValue((setting.ki * COEFFICIENT_TO_UI).toString(COEFFICIENT_DECIMAL_PLACES));
+        setKiInputValue((setting.ki * COEFFICIENT_TO_UI).toFixed(COEFFICIENT_DECIMAL_PLACES));
     }, [setting.ki]);
 
     useEffect(() => {
-        setKdInputValue((setting.kd * COEFFICIENT_TO_UI).toString(COEFFICIENT_DECIMAL_PLACES));
+        setKdInputValue((setting.kd * COEFFICIENT_TO_UI).toFixed(COEFFICIENT_DECIMAL_PLACES));
     }, [setting.kd]);
 
     useEffect(() => {
