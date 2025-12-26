@@ -8,23 +8,26 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
-import { OperationType, LockType } from '../../../../../store/slices/channel/channel';
+import { OperationType, LockType, PidType } from '../../../../../store/slices/channel/channel';
 
 type Props = {
     channel: number;
     channelName: string;
     operation: OperationType;
     lock: LockType;
+    pid: PidType;
     inUse: boolean;
     hasLock: boolean;
-    isInUseButtonEnabled: boolean;
-    isLockButtonEnabled: boolean;
+    hasPid: boolean;
+    isInUseRequestPending: boolean;
+    isLockRequestPending: boolean;
+    isPidRequestPending: boolean;
     areAllSocketsConnected: boolean;
     requestersText: string;
     lockText: string;
     onInUseChange: (inUse: boolean) => void;
-    onLockToggle: () => void;
-    onInUseButtonEnabledChange: (enabled: boolean) => void;
+    onLockToggle: (hasLock: boolean) => void;
+    onPidToggle: (hasPid: boolean) => void;
 };
 
 const ChannelHeader = ({
@@ -32,16 +35,19 @@ const ChannelHeader = ({
     channelName,
     operation,
     lock,
+    pid,
     inUse,
     hasLock,
-    isInUseButtonEnabled,
-    isLockButtonEnabled,
+    hasPid,
+    isInUseRequestPending,
+    isLockRequestPending,
+    isPidRequestPending,
     areAllSocketsConnected,
     requestersText,
     lockText,
     onInUseChange,
     onLockToggle,
-    onInUseButtonEnabledChange,
+    onPidToggle,
 }: Props) => {
     return (
         <Stack
@@ -96,10 +102,14 @@ const ChannelHeader = ({
                         >
                             <Switch
                                 checked={inUse}
-                                disabled={!isInUseButtonEnabled}
+                                disabled={
+                                    !(
+                                        !isInUseRequestPending &&
+                                        !hasPid
+                                    )
+                                }
                                 size='small'
                                 onChange={() => {
-                                    onInUseButtonEnabledChange(false);
                                     onInUseChange(inUse);
                                 }}
                             />
@@ -138,20 +148,67 @@ const ChannelHeader = ({
                                 checked={hasLock}
                                 disabled={
                                     !(
-                                        isLockButtonEnabled &&
-                                        (!lock.locked || hasLock)
+                                        !isLockRequestPending &&
+                                        (!lock.locked || hasLock) &&
+                                        !hasPid
                                     )
                                 }
                                 size='small'
                                 onChange={() => {
-                                    onLockToggle();
+                                    onLockToggle(hasLock);
+                                }}
+                            />
+                        </Grid>
+                    </Grid>
+                    <Grid
+                        container
+                        size={12}
+                        sx={{ display: 'flex', alignItems: 'center' }}
+                    >
+                        <Grid
+                            size={5.5}
+                            sx={{ display: 'flex', justifyContent: 'flex-start' }}
+                        >
+                            <Typography variant='overline'>
+                                {pid.on ? 'PID' : 'MANUAL'}
+                            </Typography>
+                        </Grid>
+                        <Grid
+                            size={2}
+                            sx={{ display: 'flex', justifyContent: 'center' }}
+                        >
+                            <Box
+                                sx={{
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: pid.on ? 'green' : 'grey',
+                                    borderRadius: '50%',
+                                }}
+                            />
+                        </Grid>
+                        <Grid
+                            size={4.5}
+                            sx={{ display: 'flex', justifyContent: 'flex-end' }}
+                        >
+                            <Switch
+                                checked={hasPid}
+                                disabled={
+                                    !(
+                                        !isPidRequestPending &&
+                                        inUse &&
+                                        hasLock
+                                    )
+                                }
+                                size='small'
+                                onChange={() => {
+                                    onPidToggle(hasPid);
                                 }}
                             />
                         </Grid>
                     </Grid>
                 </Grid>
             ) : (
-                <Skeleton variant='rounded' width={140} height={50} />
+                <Skeleton variant='rounded' width={140} height={75} />
             )}
         </Stack>
     );

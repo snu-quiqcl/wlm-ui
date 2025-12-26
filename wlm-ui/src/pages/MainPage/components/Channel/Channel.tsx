@@ -14,6 +14,7 @@ import {
     SettingType,
     postInUse,
     postSetting,
+    postPidOperation,
     tryLock,
     releaseLock,
 } from '../../../../store/slices/channel/channel';
@@ -38,8 +39,9 @@ const Card = styled(MuiCard)(({ theme }) => ({
 type Props = ChannelInfo & { dragHandleProps: DraggableProvidedDragHandleProps | null };
 
 const Channel = (props: Props) => {
-    const [isInUseButtonEnabled, setIsInUseButtonEnabled] = useState<boolean>(true);
-    const [isLockButtonEnabled, setIsLockButtonEnabled] = useState<boolean>(true);
+    const [isInUseRequestPending, setIsInUseRequestPending] = useState<boolean>(false);
+    const [isLockRequestPending, setIsLockRequestPending] = useState<boolean>(false);
+    const [isPidRequestPending, setIsPidRequestPending] = useState<boolean>(false);
     const [isFrequencyOpen, setIsFrequencyOpen] = useState<boolean>(false);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
@@ -62,7 +64,8 @@ const Channel = (props: Props) => {
         handleTimeSlider,
     } = useMeasurementWindow(props.measurements, shouldUpdatePlot);
 
-    const canUpdateSettings = props.hasLock && isLockButtonEnabled;
+    const canUpdateSettings = props.hasLock && !isLockRequestPending;
+    const canControlDac = canUpdateSettings && !props.hasPid && !isPidRequestPending;
 
     useEffect(() => {
         const requesters = props.operation.requesters;
@@ -80,7 +83,7 @@ const Channel = (props: Props) => {
     }, [props.operation.requesters]);
 
     useEffect(() => {
-        setIsInUseButtonEnabled(true);
+        setIsInUseRequestPending(false);
         setIsFrequencyOpen(props.inUse);
         setShouldUpdatePlot(props.inUse);
     }, [props.inUse]);
@@ -94,10 +97,15 @@ const Channel = (props: Props) => {
     }, [props.lock]);
 
     useEffect(() => {
-        setIsLockButtonEnabled(true);
+        setIsLockRequestPending(false);
     }, [props.hasLock]);
 
+    useEffect(() => {
+        setIsPidRequestPending(false);
+    }, [props.hasPid]);
+
     const onClickSetInUse = (inUse: boolean) => {
+        setIsInUseRequestPending(true);
         dispatch(postInUse({ channel: channel, inUse: inUse }));
     };
 
@@ -115,13 +123,18 @@ const Channel = (props: Props) => {
         }
     };
 
-    const handleLockToggle = () => {
-        setIsLockButtonEnabled(false);
-        if (props.hasLock) {
+    const handleLockToggle = (hasLock: boolean) => {
+        setIsLockRequestPending(true);
+        if (hasLock) {
             onClickReleaseLock();
         } else {
             onClickTryLock();
         }
+    };
+
+    const handlePidToggle = (hasPid: boolean) => {
+        setIsPidRequestPending(true);
+        dispatch(postPidOperation({ channel: channel, hasPid: hasPid }));
     };
 
     return (
@@ -140,16 +153,19 @@ const Channel = (props: Props) => {
                 channelName={props.channel.name}
                 operation={props.operation}
                 lock={props.lock}
+                pid={props.pid}
                 inUse={props.inUse}
                 hasLock={props.hasLock}
-                isInUseButtonEnabled={isInUseButtonEnabled}
-                isLockButtonEnabled={isLockButtonEnabled}
+                hasPid={props.hasPid}
+                isInUseRequestPending={isInUseRequestPending}
+                isLockRequestPending={isLockRequestPending}
+                isPidRequestPending={isPidRequestPending}
                 areAllSocketsConnected={areAllSocketsConnected}
                 requestersText={requestersText}
                 lockText={lockText}
                 onInUseChange={onClickSetInUse}
                 onLockToggle={handleLockToggle}
-                onInUseButtonEnabledChange={setIsInUseButtonEnabled}
+                onPidToggle={handlePidToggle}
             />
             {areAllSocketsConnected ? (
                 <FrequencyPanel
@@ -185,7 +201,7 @@ const Channel = (props: Props) => {
                     isOpen={isDacOutputOpen}
                     onToggle={() => setIsDacOutputOpen(!isDacOutputOpen)}
                     pid={props.pid}
-                    canUpdateSettings={canUpdateSettings}
+                    canControlDac={canControlDac}
                     channel={channel}
                     sendVoltage={sendDacVoltage}
                 />

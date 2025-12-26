@@ -23,6 +23,7 @@ export interface DacOutputType {
 };
 
 export interface PidType {
+    on: boolean;
     dacOutput: DacOutputType;
 };
 
@@ -42,6 +43,7 @@ export interface ChannelInfo {
     inUse: boolean;
     operation: OperationType;
     setting: SettingType;
+    hasPid: boolean;
     pid: PidType;
     measurements: MeasurementType[];
     hasLock: boolean;
@@ -72,7 +74,7 @@ export const fetchList = createAsyncThunk(
     'channel/fetch',
     async () => {
         const response = await axios.get<
-            (ChannelType & Pick<ChannelInfo, 'inUse' | 'hasLock'>)[]>('/api/channel/');
+            (ChannelType & Pick<ChannelInfo, 'inUse' | 'hasLock' | 'hasPid'>)[]>('/api/channel/');
         return response.data;
     },
 );
@@ -92,6 +94,16 @@ export const postSetting = createAsyncThunk(
     async (payload: Pick<ChannelType, 'channel'> & Partial<SettingType>) => {
         const data = { exposure: payload.exposure, period: payload.period };
         await axios.post(`/api/setting/${payload.channel}/`, data);
+    },
+);
+
+export const postPidOperation = createAsyncThunk(
+    'channel/postPidOperation',
+    async (payload: Pick<ChannelType, 'channel'> & Pick<ChannelInfo, 'hasPid'>) => {
+        const { channel, hasPid } = payload;
+        const newHasPid = !hasPid;
+        await axios.post(`/api/pid_operation/${channel}/`, { 'on': newHasPid });
+        return { channel: channel, hasPid: newHasPid };
     },
 );
 
@@ -137,9 +149,17 @@ export const channelListSlice = createSlice({
                 info.setting.period = period;
             }
         },
+        fetchPidOperation: (
+            state,
+            action: PayloadAction<Pick<ChannelType, 'channel'> & Pick<PidType, 'on'>>
+        ) => {
+            const { channel, on } = action.payload;
+            const info = getChannelInfoWithException(state, channel);
+            info.pid.on = on;
+        },
         fetchPidDacOutput: (
             state,
-            action: PayloadAction<Pick<ChannelType, 'channel'> & { voltage: number }>
+            action: PayloadAction<Pick<ChannelType, 'channel'> & Pick<DacOutputType, 'voltage'>>
         ) => {
             const { channel, voltage } = action.payload;
             const info = getChannelInfoWithException(state, channel);
@@ -186,7 +206,8 @@ export const channelListSlice = createSlice({
                         inUse: ch.inUse,
                         operation: info?.operation ?? { on: false, requesters: [] },
                         setting: info?.setting ?? { exposure: 0, period: 0 },
-                        pid: info?.pid ?? { dacOutput: { voltage: 0 } },
+                        hasPid: ch.hasPid,
+                        pid: info?.pid ?? { on: false, dacOutput: { voltage: 0 } },
                         measurements: info?.measurements ?? [],
                         hasLock: ch.hasLock,
                         lock: info?.lock ?? { locked: false, owner: null },
@@ -204,6 +225,10 @@ export const channelListSlice = createSlice({
             .addCase(releaseLock.fulfilled, (state, action) => {
                 const info = getChannelInfoWithException(state, action.payload.channel);
                 info.hasLock = false;
+            })
+            .addCase(postPidOperation.fulfilled, (state, action) => {
+                const info = getChannelInfoWithException(state, action.payload.channel);
+                info.hasPid = action.payload.hasPid;
             })
     },
 });

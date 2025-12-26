@@ -5,6 +5,8 @@ import {
     channelListActions,
     OperationType,
     SettingType,
+    PidType,
+    DacOutputType,
     MeasurementType,
     LockType,
 } from '../../../../../store/slices/channel/channel';
@@ -13,6 +15,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
     const dispatch = useDispatch<AppDispatch>();
     const [isOperationSocketConnected, setIsOperationSocketConnected] = useState<boolean>(false);
     const [isLockSocketConnected, setIsLockSocketConnected] = useState<boolean>(false);
+    const [isPidOperationSocketConnected, setIsPidOperationSocketConnected] = useState<boolean>(false);
     const [isMeasurementSocketConnected, setIsMeasurementSocketConnected] = useState<boolean>(false);
     const [isSettingSocketConnected, setIsSettingSocketConnected] = useState<boolean>(false);
     const [isDacOutputSocketConnected, setIsDacOutputSocketConnected] = useState<boolean>(false);
@@ -22,6 +25,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
     const areAllSocketsConnected =
         isOperationSocketConnected &&
         isLockSocketConnected &&
+        isPidOperationSocketConnected &&
         isMeasurementSocketConnected &&
         isSettingSocketConnected &&
         isDacOutputSocketConnected;
@@ -59,6 +63,25 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
 
         socket.onclose = () => {
             setIsLockSocketConnected(false);
+        };
+
+        return () => socket.close();
+    }, [dispatch, channel]);
+
+    useEffect(() => {
+        const socket = new WebSocket(`/ws/pid_operation/${channel}/`);
+
+        socket.onopen = () => {
+            setIsPidOperationSocketConnected(true);
+        };
+
+        socket.onmessage = event => {
+            const data = JSON.parse(event.data) as Pick<PidType, 'on'>;
+            dispatch(channelListActions.fetchPidOperation({ channel: channel, ...data }));
+        };
+
+        socket.onclose = () => {
+            setIsPidOperationSocketConnected(false);
         };
 
         return () => socket.close();
@@ -110,8 +133,8 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         };
 
         socket.onmessage = event => {
-            const data = JSON.parse(event.data) as { voltage: number };
-            dispatch(channelListActions.fetchPidDacOutput({ channel: channel, voltage: data.voltage }));
+            const data = JSON.parse(event.data) as Pick<DacOutputType, 'voltage'>;
+            dispatch(channelListActions.fetchPidDacOutput({ channel: channel, ...data }));
         };
 
         socket.onclose = () => {
@@ -176,6 +199,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         areAllSocketsConnected,
         isOperationSocketConnected,
         isLockSocketConnected,
+        isPidOperationSocketConnected,
         isMeasurementSocketConnected,
         isSettingSocketConnected,
         isDacOutputSocketConnected,
