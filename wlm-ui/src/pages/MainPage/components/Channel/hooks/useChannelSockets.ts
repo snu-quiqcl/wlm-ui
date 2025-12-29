@@ -12,7 +12,7 @@ import {
     LockType,
 } from '../../../../../store/slices/channel/channel';
 
-export const useChannelSockets = (channel: number, hasLock: boolean) => {
+export const useChannelSockets = (channel: number, hasLock: boolean, hasDacInfo: boolean) => {
     const dispatch = useDispatch<AppDispatch>();
     const [isOperationSocketConnected, setIsOperationSocketConnected] = useState<boolean>(false);
     const [isLockSocketConnected, setIsLockSocketConnected] = useState<boolean>(false);
@@ -27,11 +27,13 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
     const areAllSocketsConnected =
         isOperationSocketConnected &&
         isLockSocketConnected &&
-        isPidOperationSocketConnected &&
         isMeasurementSocketConnected &&
         isSettingSocketConnected &&
-        isDacOutputSocketConnected &&
-        isPidSettingSocketConnected;
+        (!hasDacInfo || (
+            isPidOperationSocketConnected &&
+            isDacOutputSocketConnected &&
+            isPidSettingSocketConnected
+        ));
 
     useEffect(() => {
         const socket = new WebSocket(`/ws/operation/${channel}/`);
@@ -72,6 +74,11 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
     }, [dispatch, channel]);
 
     useEffect(() => {
+        if (!hasDacInfo) {
+            setIsPidOperationSocketConnected(false);
+            return;
+        }
+
         const socket = new WebSocket(`/ws/pid_operation/${channel}/`);
 
         socket.onopen = () => {
@@ -88,7 +95,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         };
 
         return () => socket.close();
-    }, [dispatch, channel]);
+    }, [dispatch, channel, hasDacInfo]);
 
     useEffect(() => {
         const socket = new WebSocket(`/ws/measurement/${channel}/`);
@@ -129,6 +136,11 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
     }, [dispatch, channel]);
 
     useEffect(() => {
+        if (!hasDacInfo) {
+            setIsDacOutputSocketConnected(false);
+            return;
+        }
+
         const socket = new WebSocket(`/ws/pid_setting/dac_output/${channel}/`);
 
         socket.onopen = () => {
@@ -145,9 +157,14 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         };
 
         return () => socket.close();
-    }, [dispatch, channel]);
+    }, [dispatch, channel, hasDacInfo]);
 
     useEffect(() => {
+        if (!hasDacInfo) {
+            setIsPidSettingSocketConnected(false);
+            return;
+        }
+
         const socket = new WebSocket(`/ws/pid_setting/${channel}/`);
 
         socket.onopen = () => {
@@ -164,10 +181,10 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         };
 
         return () => socket.close();
-    }, [dispatch, channel]);
+    }, [dispatch, channel, hasDacInfo]);
 
     useEffect(() => {
-        if (!hasLock) {
+        if (!hasLock || !hasDacInfo) {
             if (dacControlSocketRef.current) {
                 dacControlSocketRef.current.close();
                 dacControlSocketRef.current = null;
@@ -195,7 +212,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
             socket.close();
             dacControlSocketRef.current = null;
         };
-    }, [channel, hasLock]);
+    }, [channel, hasLock, hasDacInfo]);
 
     const sendDacVoltage = (voltage: number) => {
         if (dacControlSocketRef.current?.readyState === WebSocket.OPEN) {

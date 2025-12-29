@@ -56,7 +56,8 @@ const Channel = (props: Props) => {
     const dispatch = useDispatch<AppDispatch>();
     const channel = props.channel.channel;
 
-    const { areAllSocketsConnected, sendDacVoltage } = useChannelSockets(channel, props.hasLock);
+    const { areAllSocketsConnected, sendDacVoltage } = useChannelSockets(
+        channel, props.hasLock, props.channel.hasDacInfo);
 
     const {
         latestMeasurementText,
