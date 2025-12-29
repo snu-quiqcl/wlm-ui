@@ -204,7 +204,7 @@ const Channel = (props: Props) => {
             ) : (
                 <Skeleton variant='rounded' height={50} />
             )}
-            {areAllSocketsConnected ? (
+            {props.channel.hasDacInfo && areAllSocketsConnected ? (
                 <DacOutputPanel
                     isOpen={isDacOutputOpen}
                     onToggle={() => setIsDacOutputOpen(!isDacOutputOpen)}
@@ -214,9 +214,9 @@ const Channel = (props: Props) => {
                     sendVoltage={sendDacVoltage}
                 />
             ) : (
-                <Skeleton variant='rounded' height={50} />
+                props.channel.hasDacInfo && <Skeleton variant='rounded' height={50} />
             )}
-            {areAllSocketsConnected ? (
+            {props.channel.hasDacInfo && areAllSocketsConnected ? (
                 <PidSettingPanel
                     isOpen={isPidSettingOpen}
                     onToggle={() => setIsPidSettingOpen(!isPidSettingOpen)}
@@ -226,7 +226,7 @@ const Channel = (props: Props) => {
                     onPidSettingChange={handlePidSettingChange}
                 />
             ) : (
-                <Skeleton variant='rounded' height={50} />
+                props.channel.hasDacInfo && <Skeleton variant='rounded' height={50} />
             )}
             <Stack
                 direction='row'
