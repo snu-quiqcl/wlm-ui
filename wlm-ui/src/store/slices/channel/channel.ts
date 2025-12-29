@@ -6,6 +6,7 @@ import { RootState } from '../..';
 export interface ChannelType {
     channel: number;
     name: string;
+    hasDacInfo: boolean;
 };
 
 export interface OperationType {
@@ -244,7 +245,7 @@ export const channelListSlice = createSlice({
                 state.channels = action.payload.map((ch) => {
                     const info = getChannelInfo(state, ch.channel);
                     return {
-                        channel: { channel: ch.channel, name: ch.name },
+                        channel: { channel: ch.channel, name: ch.name, hasDacInfo: ch.hasDacInfo },
                         inUse: ch.inUse,
                         operation: info?.operation ?? { on: false, requesters: [] },
                         setting: info?.setting ?? { exposure: 0, period: 0 },
