@@ -160,6 +160,7 @@ const Channel = (props: Props) => {
             <ChannelHeader
                 channel={channel}
                 channelName={props.channel.name}
+                hasDacInfo={props.channel.hasDacInfo}
                 operation={props.operation}
                 lock={props.lock}
                 pid={props.pid}
