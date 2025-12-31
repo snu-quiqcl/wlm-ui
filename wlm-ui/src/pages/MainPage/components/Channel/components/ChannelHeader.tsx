@@ -13,6 +13,7 @@ import { OperationType, LockType, PidType } from '../../../../../store/slices/ch
 type Props = {
     channel: number;
     channelName: string;
+    hasDacInfo: boolean;
     operation: OperationType;
     lock: LockType;
     pid: PidType;
@@ -33,6 +34,7 @@ type Props = {
 const ChannelHeader = ({
     channel,
     channelName,
+    hasDacInfo,
     operation,
     lock,
     pid,
@@ -160,54 +162,56 @@ const ChannelHeader = ({
                             />
                         </Grid>
                     </Grid>
-                    <Grid
-                        container
-                        size={12}
-                        sx={{ display: 'flex', alignItems: 'center' }}
-                    >
+                    {hasDacInfo && (
                         <Grid
-                            size={5.5}
-                            sx={{ display: 'flex', justifyContent: 'flex-start' }}
+                            container
+                            size={12}
+                            sx={{ display: 'flex', alignItems: 'center' }}
                         >
-                            <Typography variant='overline'>
-                                {pid.on ? 'PID' : 'MANUAL'}
-                            </Typography>
+                            <Grid
+                                size={5.5}
+                                sx={{ display: 'flex', justifyContent: 'flex-start' }}
+                            >
+                                <Typography variant='overline'>
+                                    {pid.on ? 'PID' : 'MANUAL'}
+                                </Typography>
+                            </Grid>
+                            <Grid
+                                size={2}
+                                sx={{ display: 'flex', justifyContent: 'center' }}
+                            >
+                                <Box
+                                    sx={{
+                                        width: '12px',
+                                        height: '12px',
+                                        backgroundColor:
+                                            !pid.on ? 'grey' :
+                                            pid.status ? 'green' : 'red',
+                                        borderRadius: '50%',
+                                    }}
+                                />
+                            </Grid>
+                            <Grid
+                                size={4.5}
+                                sx={{ display: 'flex', justifyContent: 'flex-end' }}
+                            >
+                                <Switch
+                                    checked={hasPid}
+                                    disabled={
+                                        !(
+                                            !isPidRequestPending &&
+                                            inUse &&
+                                            hasLock
+                                        )
+                                    }
+                                    size='small'
+                                    onChange={() => {
+                                        onPidToggle(hasPid);
+                                    }}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid
-                            size={2}
-                            sx={{ display: 'flex', justifyContent: 'center' }}
-                        >
-                            <Box
-                                sx={{
-                                    width: '12px',
-                                    height: '12px',
-                                    backgroundColor: 
-                                        !pid.on ? 'grey' :
-                                        pid.status ? 'green' : 'red',
-                                    borderRadius: '50%',
-                                }}
-                            />
-                        </Grid>
-                        <Grid
-                            size={4.5}
-                            sx={{ display: 'flex', justifyContent: 'flex-end' }}
-                        >
-                            <Switch
-                                checked={hasPid}
-                                disabled={
-                                    !(
-                                        !isPidRequestPending &&
-                                        inUse &&
-                                        hasLock
-                                    )
-                                }
-                                size='small'
-                                onChange={() => {
-                                    onPidToggle(hasPid);
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
+                    )}
                 </Grid>
             ) : (
                 <Skeleton variant='rounded' width={140} height={75} />
