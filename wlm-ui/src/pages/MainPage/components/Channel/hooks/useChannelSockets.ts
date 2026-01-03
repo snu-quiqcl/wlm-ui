@@ -79,7 +79,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         };
 
         socket.onmessage = event => {
-            const data = JSON.parse(event.data) as Pick<PidType, 'on'>;
+            const data = JSON.parse(event.data) as Pick<PidType, 'on' | 'status'>;
             dispatch(channelListActions.fetchPidOperation({ channel: channel, ...data }));
         };
 
