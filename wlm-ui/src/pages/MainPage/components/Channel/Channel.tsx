@@ -12,9 +12,11 @@ import { AppDispatch } from '../../../../store';
 import {
     ChannelInfo,
     SettingType,
+    PidSettingType,
     postInUse,
     postSetting,
     postPidOperation,
+    postPidSetting,
     tryLock,
     releaseLock,
 } from '../../../../store/slices/channel/channel';
@@ -24,6 +26,7 @@ import ChannelHeader from './components/ChannelHeader';
 import FrequencyPanel from './components/FrequencyPanel';
 import SettingsPanel from './components/SettingsPanel';
 import DacOutputPanel from './components/DacOutputPanel';
+import PidSettingPanel from './components/PidSettingPanel';
 
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
@@ -46,6 +49,7 @@ const Channel = (props: Props) => {
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
     const [isDacOutputOpen, setIsDacOutputOpen] = useState<boolean>(false);
+    const [isPidSettingOpen, setIsPidSettingOpen] = useState<boolean>(false);
     const [requestersText, setRequestersText] = useState<string>('');
     const [lockText, setLockText] = useState<string>('');
 
@@ -137,6 +141,10 @@ const Channel = (props: Props) => {
         dispatch(postPidOperation({ channel: channel, hasPid: hasPid }));
     };
 
+    const handlePidSettingChange = (setting: Partial<PidSettingType>) => {
+        dispatch(postPidSetting({ channel: channel, ...setting }));
+    };
+
     return (
         <Card
             variant='outlined'
@@ -204,6 +212,18 @@ const Channel = (props: Props) => {
                     canControlDac={canControlDac}
                     channel={channel}
                     sendVoltage={sendDacVoltage}
+                />
+            ) : (
+                <Skeleton variant='rounded' height={50} />
+            )}
+            {areAllSocketsConnected ? (
+                <PidSettingPanel
+                    isOpen={isPidSettingOpen}
+                    onToggle={() => setIsPidSettingOpen(!isPidSettingOpen)}
+                    setting={props.pid.setting}
+                    canUpdateSettings={canUpdateSettings}
+                    channel={channel}
+                    onPidSettingChange={handlePidSettingChange}
                 />
             ) : (
                 <Skeleton variant='rounded' height={50} />

@@ -6,6 +6,7 @@ import {
     OperationType,
     SettingType,
     PidType,
+    PidSettingType,
     DacOutputType,
     MeasurementType,
     LockType,
@@ -20,6 +21,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
     const [isSettingSocketConnected, setIsSettingSocketConnected] = useState<boolean>(false);
     const [isDacOutputSocketConnected, setIsDacOutputSocketConnected] = useState<boolean>(false);
     const [isDacControlSocketConnected, setIsDacControlSocketConnected] = useState<boolean>(false);
+    const [isPidSettingSocketConnected, setIsPidSettingSocketConnected] = useState<boolean>(false);
     const dacControlSocketRef = useRef<WebSocket | null>(null);
 
     const areAllSocketsConnected =
@@ -28,7 +30,8 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         isPidOperationSocketConnected &&
         isMeasurementSocketConnected &&
         isSettingSocketConnected &&
-        isDacOutputSocketConnected;
+        isDacOutputSocketConnected &&
+        isPidSettingSocketConnected;
 
     useEffect(() => {
         const socket = new WebSocket(`/ws/operation/${channel}/`);
@@ -145,6 +148,25 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
     }, [dispatch, channel]);
 
     useEffect(() => {
+        const socket = new WebSocket(`/ws/pid_setting/${channel}/`);
+
+        socket.onopen = () => {
+            setIsPidSettingSocketConnected(true);
+        };
+
+        socket.onmessage = event => {
+            const data = JSON.parse(event.data) as Partial<PidSettingType>;
+            dispatch(channelListActions.fetchPidSetting({ channel: channel, ...data }));
+        };
+
+        socket.onclose = () => {
+            setIsPidSettingSocketConnected(false);
+        };
+
+        return () => socket.close();
+    }, [dispatch, channel]);
+
+    useEffect(() => {
         if (!hasLock) {
             if (dacControlSocketRef.current) {
                 dacControlSocketRef.current.close();
@@ -205,5 +227,6 @@ export const useChannelSockets = (channel: number, hasLock: boolean) => {
         isDacOutputSocketConnected,
         isDacControlSocketConnected,
         sendDacVoltage,
+        isPidSettingSocketConnected,
     };
 };
