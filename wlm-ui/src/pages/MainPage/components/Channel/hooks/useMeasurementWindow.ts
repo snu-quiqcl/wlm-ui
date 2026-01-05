@@ -44,6 +44,7 @@ export const useMeasurementWindow = (
     const [isTimeSliderEnabled, setIsTimeSliderEnabled] = useState<boolean>(false);
     const [timeSliderRange, setTimeSliderRange] = useState<number[]>([]);
     const [timeSliderMarks, setTimeSliderMarks] = useState<{ value: number, label: string }[]>([]);
+    const [latestFrequency, setLatestFrequency] = useState<number | null>(null);
     const [latestMeasurementText, setLatestMeasurementText] = useState<string>('');
     const measurementsRef = useRef(measurements);
 
@@ -53,6 +54,7 @@ export const useMeasurementWindow = (
 
         if (latestMeasurement !== undefined) {
             const { frequency, error } = latestMeasurement;
+            setLatestFrequency(frequency);
             if (frequency !== null) {
                 setLatestMeasurementText(`${(frequency / 1e12).toFixed(6)} THz`);
             } else if (error === 'over') {
@@ -63,6 +65,7 @@ export const useMeasurementWindow = (
                 setLatestMeasurementText('Error');
             }
         } else {
+            setLatestFrequency(null);
             setLatestMeasurementText('');
         }
     }, [measurements]);
@@ -139,6 +142,7 @@ export const useMeasurementWindow = (
     };
 
     return {
+        latestFrequency,
         latestMeasurementText,
         chartData,
         timeWindow,
