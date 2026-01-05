@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
 import Grid from '@mui/material/Grid2';
@@ -16,7 +16,9 @@ const Card = MuiCard;
 type Props = {
     isOpen: boolean;
     onToggle: () => void;
+    latestFrequency: number | null;
     latestMeasurementText: string;
+    targetFrequency: number | null;
     shouldUpdatePlot: boolean;
     onShouldUpdatePlotChange: (value: boolean) => void;
     chartData: { x: Date, y: number | null }[];
@@ -30,7 +32,9 @@ type Props = {
 const FrequencyPanel = ({
     isOpen,
     onToggle,
+    latestFrequency,
     latestMeasurementText,
+    targetFrequency,
     shouldUpdatePlot,
     onShouldUpdatePlotChange,
     chartData,
@@ -40,6 +44,51 @@ const FrequencyPanel = ({
     timeSliderMarks,
     onTimeSliderChange,
 }: Props) => {
+    const yScale = useMemo(() => {
+        if (chartData.length === 0) {
+            return {
+                type: 'linear' as const,
+                min: 'auto' as const,
+                max: 'auto' as const,
+                nice: true,
+            };
+        }
+
+        const validData = chartData.filter(d => d.y !== null);
+        if (validData.length === 0) {
+            return {
+                type: 'linear' as const,
+                min: 'auto' as const,
+                max: 'auto' as const,
+                nice: true,
+            };
+        }
+
+        const yValues = validData.map(d => d.y!);
+        let minY = Math.min(...yValues);
+        let maxY = Math.max(...yValues);
+
+        if (targetFrequency !== null) {
+            if (targetFrequency < minY) {
+                minY = targetFrequency;
+            } else if (targetFrequency > maxY) {
+                maxY = targetFrequency;
+            }
+        }
+
+        const range = maxY - minY;
+        const padding = range * 0.1;
+        minY -= padding;
+        maxY += padding;
+
+        return {
+            type: 'linear' as const,
+            min: minY,
+            max: maxY,
+            nice: true,
+        };
+    }, [chartData, targetFrequency]);
+
     return (
         <Stack>
             <Stack
@@ -59,33 +108,38 @@ const FrequencyPanel = ({
                     <ExpandMoreIcon />
                 </IconButton>
             </Stack>
+            <Stack
+                direction='row'
+                spacing={2}
+                sx={{ justifyContent: 'flex-start', alignItems: 'center', marginTop: 1 }}
+            >
+                <Typography
+                    variant='subtitle1'
+                    sx={{ width: '130px', textAlign: 'left' }}
+                >
+                    {latestMeasurementText}
+                </Typography>
+                {latestFrequency !== null && targetFrequency !== null && (
+                    <Typography variant='subtitle1' sx={{ color: 'text.secondary' }}>
+                        Detuning: {((latestFrequency - targetFrequency) / 1e6).toFixed()} MHz
+                    </Typography>
+                )}
+            </Stack>
             <Collapse in={isOpen} sx={{ marginTop: 1 }}>
                 <Stack spacing={1} sx={{ alignItems: 'center' }}>
                     <Stack
                         direction='row'
-                        spacing={2}
+                        spacing={1}
                         sx={{ justifyContent: 'flex-start', alignItems: 'center' }}
                     >
-                        <Typography
-                            variant='subtitle1'
-                            sx={{ width: '130px', textAlign: 'left' }}
-                        >
-                            {latestMeasurementText}
+                        <Typography variant='body2'>
+                            Live
                         </Typography>
-                        <Stack
-                            direction='row'
-                            spacing={1}
-                            sx={{ alignItems: 'center' }}
-                        >
-                            <Typography variant='body2'>
-                                Live
-                            </Typography>
-                            <Switch
-                                checked={shouldUpdatePlot}
-                                size='small'
-                                onChange={() => onShouldUpdatePlotChange(!shouldUpdatePlot)}
-                            />
-                        </Stack>
+                        <Switch
+                            checked={shouldUpdatePlot}
+                            size='small'
+                            onChange={() => onShouldUpdatePlotChange(!shouldUpdatePlot)}
+                        />
                     </Stack>
                     <Box sx={{ width: '90%', height: '300px' }}>
                         <ResponsiveLine
@@ -102,16 +156,11 @@ const FrequencyPanel = ({
                                 max: new Date(timeWindow[1]),
                             }}
                             xFormat='time:%M:%S.%L'
-                            yScale={{
-                                type: 'linear',
-                                min: 'auto',
-                                max: 'auto',
-                                nice: true,
-                            }}
+                            yScale={yScale}
                             yFormat={value => `${(Number(value) / 1e12).toFixed(6)} THz`}
                             margin={{
                                 top: 10,
-                                right: 30,
+                                right: 80,
                                 bottom: 30,
                                 left: 80,
                             }}
@@ -124,6 +173,13 @@ const FrequencyPanel = ({
                             pointBorderColor='#fff'
                             enableGridX
                             enableGridY
+                            markers={targetFrequency !== null ? [
+                                {
+                                    axis: 'y',
+                                    value: targetFrequency,
+                                    lineStyle: { stroke: '#ff0000', strokeWidth: 2, strokeDasharray: '5 5' },
+                                },
+                            ] : []}
                             axisBottom={{
                                 format: '%M:%S',
                             }}
@@ -133,6 +189,15 @@ const FrequencyPanel = ({
                                 legendOffset: -70,
                                 legendPosition: 'middle',
                             }}
+                            axisRight={targetFrequency !== null ? {
+                                format: value => {
+                                    const delta = Number(value) - targetFrequency;
+                                    return `${(delta / 1e6).toFixed()} MHz`;
+                                },
+                                legend: 'Delta (MHz)',
+                                legendOffset: 70,
+                                legendPosition: 'middle',
+                            } : undefined}
                             isInteractive
                             enableSlices='x'
                             sliceTooltip={({ slice }) => (
