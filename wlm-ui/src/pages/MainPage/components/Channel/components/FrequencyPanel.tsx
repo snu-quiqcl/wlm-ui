@@ -92,6 +92,28 @@ const FrequencyPanel = ({
         <Stack>
             <Stack
                 direction='row'
+                spacing={isOpen ? 4 : 2}
+                sx={{ justifyContent: 'center', alignItems: 'center', marginTop: 1 }}
+            >
+                <Typography
+                    variant='subtitle1'
+                    sx={{ width: '130px', textAlign: 'left' }}
+                >
+                    {latestMeasurementText}
+                </Typography>
+                {latestFrequency !== null && targetFrequency !== null && (
+                    <Typography variant='subtitle1' sx={{ color: 'text.secondary' }}>
+                        {isOpen && 'Detuning: '}
+                        {(() => {
+                            const detuning = ((latestFrequency - targetFrequency) / 1e6);
+                            const sign = detuning >= 0 ? '+' : '';
+                            return `${sign}${detuning.toFixed()} MHz`;
+                        })()}
+                    </Typography>
+                )}
+            </Stack>
+            <Stack
+                direction='row'
                 sx={{ justifyContent: 'space-between', alignItems: 'center' }}
             >
                 <Typography variant='subtitle2'>
@@ -106,23 +128,6 @@ const FrequencyPanel = ({
                 >
                     <ExpandMoreIcon />
                 </IconButton>
-            </Stack>
-            <Stack
-                direction='row'
-                spacing={4}
-                sx={{ justifyContent: 'center', alignItems: 'center', marginTop: 1 }}
-            >
-                <Typography
-                    variant='subtitle1'
-                    sx={{ width: '130px', textAlign: 'left' }}
-                >
-                    {latestMeasurementText}
-                </Typography>
-                {latestFrequency !== null && targetFrequency !== null && (
-                    <Typography variant='subtitle1' sx={{ color: 'text.secondary' }}>
-                        Detuning: {((latestFrequency - targetFrequency) / 1e6).toFixed()} MHz
-                    </Typography>
-                )}
             </Stack>
             {isOpen && (
                 <Stack spacing={1} sx={{ alignItems: 'center', marginTop: 1 }}>
