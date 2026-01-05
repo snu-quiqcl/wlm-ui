@@ -14,6 +14,8 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { AppDispatch } from '../../../../store';
 import { signout, selectUser } from '../../../../store/slices/user/user';
 
+const APP_NAME = 'WLM Laser Control';
+
 const AppNavBar = () => {
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
@@ -43,7 +45,7 @@ const AppNavBar = () => {
                     variant='h5'
                     sx={{ fontWeight: 'bold', color: 'text.primary' }}
                 >
-                    WLM manager
+                    {APP_NAME}
                 </Typography>
                 <IconButton
                     onClick={e => setMenuAnchorEl(e.currentTarget)}
