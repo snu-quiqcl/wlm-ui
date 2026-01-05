@@ -93,7 +93,7 @@ const FrequencyPanel = ({
             <Stack
                 direction='row'
                 spacing={isOpen ? 4 : 2}
-                sx={{ justifyContent: 'center', alignItems: 'center', marginTop: 1 }}
+                sx={{ justifyContent: 'center', alignItems: 'center', marginTop: 1, marginBottom: 1 }}
             >
                 <Typography
                     variant='subtitle1'
