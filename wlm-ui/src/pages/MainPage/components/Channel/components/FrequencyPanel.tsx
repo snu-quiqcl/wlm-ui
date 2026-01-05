@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import Box from '@mui/material/Box';
-import Collapse from '@mui/material/Collapse';
 import Grid from '@mui/material/Grid2';
 import IconButton from '@mui/material/IconButton';
 import Slider from '@mui/material/Slider';
@@ -125,8 +124,8 @@ const FrequencyPanel = ({
                     </Typography>
                 )}
             </Stack>
-            <Collapse in={isOpen} sx={{ marginTop: 1 }}>
-                <Stack spacing={1} sx={{ alignItems: 'center' }}>
+            {isOpen && (
+                <Stack spacing={1} sx={{ alignItems: 'center', marginTop: 1 }}>
                     <Stack
                         direction='row'
                         spacing={1}
@@ -192,7 +191,9 @@ const FrequencyPanel = ({
                             axisRight={targetFrequency !== null ? {
                                 format: value => {
                                     const delta = Number(value) - targetFrequency;
-                                    return `${(delta / 1e6).toFixed()} MHz`;
+                                    const deltaInMHz = delta / 1e6;
+                                    const sign = deltaInMHz >= 0 ? '+' : '';
+                                    return `${sign}${deltaInMHz.toFixed()}`;
                                 },
                                 legend: 'Delta (MHz)',
                                 legendOffset: 70,
@@ -287,7 +288,7 @@ const FrequencyPanel = ({
                         }}
                     />
                 </Stack>
-            </Collapse>
+            )}
         </Stack>
     );
 };
