@@ -9,6 +9,8 @@ import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
 import LogoutIcon from '@mui/icons-material/Logout';
 
 import { AppDispatch } from '../../../../store';
@@ -40,13 +42,24 @@ const AppNavBar = () => {
             <Toolbar
                 sx={{ justifyContent: 'space-between' }}
             >
-                <Typography
-                    component='h1'
-                    variant='h5'
-                    sx={{ fontWeight: 'bold', color: 'text.primary' }}
-                >
-                    {APP_NAME}
-                </Typography>
+                <Stack direction='row' spacing={1.5} sx={{ alignItems: 'center' }}>
+                    <Box
+                        component='img'
+                        src={'/logo192.png'}
+                        alt='Logo'
+                        sx={{
+                            height: 32,
+                            width: 32,
+                        }}
+                    />
+                    <Typography
+                        component='h1'
+                        variant='h5'
+                        sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                    >
+                        {APP_NAME}
+                    </Typography>
+                </Stack>
                 <IconButton
                     onClick={e => setMenuAnchorEl(e.currentTarget)}
                 >
