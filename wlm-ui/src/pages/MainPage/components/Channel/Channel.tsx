@@ -56,7 +56,8 @@ const Channel = (props: Props) => {
     const dispatch = useDispatch<AppDispatch>();
     const channel = props.channel.channel;
 
-    const { areAllSocketsConnected, sendDacVoltage } = useChannelSockets(channel, props.hasLock);
+    const { areAllSocketsConnected, sendDacVoltage } = useChannelSockets(
+        channel, props.hasLock, props.channel.hasDacInfo);
 
     const {
         latestMeasurementText,
@@ -159,6 +160,7 @@ const Channel = (props: Props) => {
             <ChannelHeader
                 channel={channel}
                 channelName={props.channel.name}
+                hasDacInfo={props.channel.hasDacInfo}
                 operation={props.operation}
                 lock={props.lock}
                 pid={props.pid}
@@ -204,7 +206,7 @@ const Channel = (props: Props) => {
             ) : (
                 <Skeleton variant='rounded' height={50} />
             )}
-            {areAllSocketsConnected ? (
+            {props.channel.hasDacInfo && areAllSocketsConnected ? (
                 <DacOutputPanel
                     isOpen={isDacOutputOpen}
                     onToggle={() => setIsDacOutputOpen(!isDacOutputOpen)}
@@ -214,9 +216,9 @@ const Channel = (props: Props) => {
                     sendVoltage={sendDacVoltage}
                 />
             ) : (
-                <Skeleton variant='rounded' height={50} />
+                props.channel.hasDacInfo && <Skeleton variant='rounded' height={50} />
             )}
-            {areAllSocketsConnected ? (
+            {props.channel.hasDacInfo && areAllSocketsConnected ? (
                 <PidSettingPanel
                     isOpen={isPidSettingOpen}
                     onToggle={() => setIsPidSettingOpen(!isPidSettingOpen)}
@@ -226,7 +228,7 @@ const Channel = (props: Props) => {
                     onPidSettingChange={handlePidSettingChange}
                 />
             ) : (
-                <Skeleton variant='rounded' height={50} />
+                props.channel.hasDacInfo && <Skeleton variant='rounded' height={50} />
             )}
             <Stack
                 direction='row'
