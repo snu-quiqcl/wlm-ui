@@ -86,7 +86,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean, hasDacInfo:
         };
 
         socket.onmessage = event => {
-            const data = JSON.parse(event.data) as Pick<PidType, 'on'>;
+            const data = JSON.parse(event.data) as Pick<PidType, 'on' | 'status'>;
             dispatch(channelListActions.fetchPidOperation({ channel: channel, ...data }));
         };
 
@@ -226,7 +226,7 @@ export const useChannelSockets = (channel: number, hasLock: boolean, hasDacInfo:
     useEffect(() => {
         const intervalId = setInterval(() => {
             dispatch(channelListActions.removeOldMeasurements({ channel: channel }));
-        }, 10 * 60 * 1000);
+        }, 30 * 1000);
 
         return () => {
             clearInterval(intervalId);

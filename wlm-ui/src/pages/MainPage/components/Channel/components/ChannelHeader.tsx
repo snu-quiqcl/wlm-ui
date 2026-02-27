@@ -184,7 +184,9 @@ const ChannelHeader = ({
                                     sx={{
                                         width: '12px',
                                         height: '12px',
-                                        backgroundColor: pid.on ? 'green' : 'grey',
+                                        backgroundColor:
+                                            !pid.on ? 'grey' :
+                                            pid.status ? 'green' : 'red',
                                         borderRadius: '50%',
                                     }}
                                 />

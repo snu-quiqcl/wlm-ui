@@ -32,6 +32,7 @@ export interface PidSettingType {
 
 export interface PidType {
     on: boolean;
+    status: boolean;
     dacOutput: DacOutputType;
     setting: PidSettingType;
 };
@@ -173,11 +174,12 @@ export const channelListSlice = createSlice({
         },
         fetchPidOperation: (
             state,
-            action: PayloadAction<Pick<ChannelType, 'channel'> & Pick<PidType, 'on'>>
+            action: PayloadAction<Pick<ChannelType, 'channel'> & Pick<PidType, 'on' | 'status'>>
         ) => {
-            const { channel, on } = action.payload;
+            const { channel, on, status } = action.payload;
             const info = getChannelInfoWithException(state, channel);
             info.pid.on = on;
+            info.pid.status = status;
         },
         fetchPidSetting: (
             state,
@@ -228,7 +230,7 @@ export const channelListSlice = createSlice({
         },
         removeOldMeasurements: (state, action: PayloadAction<Pick<ChannelType, 'channel'>>) => {
             const info = getChannelInfoWithException(state, action.payload.channel);
-            const cutoffTime = new Date(Date.now() - 10 * 60 * 1000);
+            const cutoffTime = new Date(Date.now() - 30 * 1000);
             info.measurements = info.measurements.filter(
                 measurement => new Date(measurement.measuredAt) > cutoffTime);
         },
@@ -249,7 +251,8 @@ export const channelListSlice = createSlice({
                         setting: info?.setting ?? { exposure: 0, period: 0 },
                         hasPid: ch.hasPid,
                         pid: info?.pid ?? { 
-                            on: false, 
+                            on: false,
+                            status: false,
                             dacOutput: { voltage: 0 },
                             setting: {
                                 targetFrequency: 0,

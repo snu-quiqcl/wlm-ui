@@ -1,7 +1,40 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { MeasurementType } from '../../../../../store/slices/channel/channel';
 
 const TIME_RANGE = 30 * 1000;
+const TIME_WINDOW_UPDATE_INTERVAL_MS = 1000;
+
+const findStartIndex = (measurements: MeasurementType[], startTime: number): number => {
+    let left = 0;
+    let right = measurements.length;
+    while (left < right) {
+        const mid = Math.floor((left + right) / 2);
+        const timestamp = new Date(measurements[mid].measuredAt).getTime();
+        if (timestamp < startTime) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    return left;
+};
+
+
+const findEndIndex = (measurements: MeasurementType[], endTime: number): number => {
+    let left = 0;
+    let right = measurements.length;
+    while (left < right) {
+        const mid = Math.floor((left + right) / 2);
+        const timestamp = new Date(measurements[mid].measuredAt).getTime();
+        if (timestamp <= endTime) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    return left - 1;
+};
+
 
 export const useMeasurementWindow = (
     measurements: MeasurementType[],
@@ -12,7 +45,6 @@ export const useMeasurementWindow = (
     const [timeSliderRange, setTimeSliderRange] = useState<number[]>([]);
     const [timeSliderMarks, setTimeSliderMarks] = useState<{ value: number, label: string }[]>([]);
     const [latestMeasurementText, setLatestMeasurementText] = useState<string>('');
-    const [chartData, setChartData] = useState<{ x: Date, y: number | null }[]>([]);
     const measurementsRef = useRef(measurements);
 
     useEffect(() => {
@@ -45,7 +77,7 @@ export const useMeasurementWindow = (
                 const now = Date.now();
                 const cutoffTime = new Date(now - TIME_RANGE).getTime();
                 setTimeWindow([cutoffTime, now]);
-            }, 500);
+            }, TIME_WINDOW_UPDATE_INTERVAL_MS);
         } else {
             clearInterval(intervalId);
 
@@ -72,15 +104,21 @@ export const useMeasurementWindow = (
         return () => clearInterval(intervalId);
     }, [shouldUpdatePlot]);
 
-    useEffect(() => {
-        setChartData(measurementsRef.current.filter(measurement => {
-            const timestamp = new Date(measurement.measuredAt).getTime();
-            return timeWindow[0] < timestamp && timestamp < timeWindow[1];
-        }).map(measurement => ({
+    const chartData = useMemo(() => {
+        const currentMeasurements = measurementsRef.current;
+        if (currentMeasurements.length === 0) {
+            return [];
+        }        
+        const startIdx = findStartIndex(currentMeasurements, timeWindow[0]);
+        const endIdx = findEndIndex(currentMeasurements, timeWindow[1]);        
+        if (startIdx > endIdx) {
+            return [];
+        }    
+        return currentMeasurements.slice(startIdx, endIdx + 1).map(measurement => ({
             x: new Date(measurement.measuredAt),
             y: measurement.frequency,
-        })));
-    }, [timeWindow]);
+        }));
+    }, [timeWindow, measurements]);
 
     const handleTimeSlider = (event: Event, value: number | number[], activeThumb: number) => {
         if (!Array.isArray(value)) {
