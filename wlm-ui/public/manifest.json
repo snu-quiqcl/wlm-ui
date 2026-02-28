@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "WLM Laser Control",
+  "name": "WLM Laser Control",
   "icons": [
     {
       "src": "favicon.ico",

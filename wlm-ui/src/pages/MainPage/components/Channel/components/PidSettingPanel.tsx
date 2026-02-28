@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Collapse from '@mui/material/Collapse';
 import FormControl from '@mui/material/FormControl';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -238,7 +237,7 @@ const PidSettingPanel = ({
                     <ExpandMoreIcon />
                 </IconButton>
             </Stack>
-            <Collapse in={isOpen} sx={{ marginTop: 1 }}>
+            {isOpen && (
                 <Stack spacing={2}>
                     <Stack spacing={1}>
                         <Stack
@@ -369,7 +368,7 @@ const PidSettingPanel = ({
                                 <ExpandMoreIcon />
                             </IconButton>
                         </Stack>
-                        <Collapse in={isCoefficientsOpen} sx={{ marginTop: 1 }}>
+                        {isCoefficientsOpen && (
                             <Stack spacing={2}>
                                 <Stack
                                     direction='row'
@@ -505,10 +504,10 @@ const PidSettingPanel = ({
                                     </Button>
                                 </Stack>
                             </Stack>
-                        </Collapse>
+                        )}
                     </Stack>
                 </Stack>
-            </Collapse>
+            )}
         </Stack>
     );
 };
