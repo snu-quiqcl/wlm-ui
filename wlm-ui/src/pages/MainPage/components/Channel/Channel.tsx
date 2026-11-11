@@ -22,8 +22,10 @@ import {
 } from '../../../../store/slices/channel/channel';
 import { useChannelSockets } from './hooks/useChannelSockets';
 import { useMeasurementWindow } from './hooks/useMeasurementWindow';
+import { usePatternSocket } from './hooks/usePatternSocket';
 import ChannelHeader from './components/ChannelHeader';
 import FrequencyPanel from './components/FrequencyPanel';
+import PatternPanel from './components/PatternPanel';
 import SettingsPanel from './components/SettingsPanel';
 import DacOutputPanel from './components/DacOutputPanel';
 import PidSettingPanel from './components/PidSettingPanel';
@@ -47,6 +49,7 @@ const Channel = (props: Props) => {
     const [isPidRequestPending, setIsPidRequestPending] = useState<boolean>(false);
     const [isFrequencyOpen, setIsFrequencyOpen] = useState<boolean>(false);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
+    const [isPatternOpen, setIsPatternOpen] = useState<boolean>(false);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
     const [isDacOutputOpen, setIsDacOutputOpen] = useState<boolean>(false);
     const [isPidSettingOpen, setIsPidSettingOpen] = useState<boolean>(false);
@@ -70,6 +73,8 @@ const Channel = (props: Props) => {
     const areHeaderSocketsConnected = props.channel.hasDacInfo
         ? isOperationSocketConnected && isLockSocketConnected && isPidOperationSocketConnected
         : isOperationSocketConnected && isLockSocketConnected;
+
+    const pattern = usePatternSocket(channel, isPatternOpen);
 
     const {
         latestFrequency,
@@ -168,7 +173,7 @@ const Channel = (props: Props) => {
             variant='outlined'
             sx={theme => ({
                 gap: 1,
-                width: isFrequencyOpen ? '500px' : '300px',
+                width: isFrequencyOpen || isPatternOpen ? '500px' : '300px',
                 [theme.breakpoints.down('sm')]: {
                     width: '100%',
                 },
@@ -213,6 +218,12 @@ const Channel = (props: Props) => {
             ) : (
                 <Skeleton variant='rounded' height={50} />
             )}
+            {/* The pattern socket is opened only while the panel is open. */}
+            <PatternPanel
+                isOpen={isPatternOpen}
+                onToggle={() => setIsPatternOpen(!isPatternOpen)}
+                pattern={pattern}
+            />
             {isSettingSocketConnected ? (
                 <SettingsPanel
                     isOpen={isSettingOpen}
