@@ -12,6 +12,7 @@ import { AppDispatch } from '../../../../store';
 import { ChannelInfo, fetchList, selectChannelList } from '../../../../store/slices/channel/channel';
 import { calibrate, selectCalibration } from '../../../../store/slices/calibration/calibration';
 import Channel from '../Channel/Channel';
+import { useFocusSocket } from './hooks/useFocusSocket';
 
 const CHANNEL_ORDER_STORAGE_KEY = 'wlm_channel_order';
 
@@ -22,6 +23,8 @@ const ChannelList = () => {
     const channelListState = useSelector(selectChannelList);
     const calibrationState = useSelector(selectCalibration);
     const dispatch = useDispatch<AppDispatch>();
+
+    useFocusSocket();
 
     useEffect(() => {
         dispatch(fetchList());
@@ -159,6 +162,7 @@ const ChannelList = () => {
                                             <Channel
                                                 key={info.channel.channel}
                                                 dragHandleProps={draggableProvided.dragHandleProps}
+                                                focusedChannel={channelListState.focusedChannel}
                                                 {...info}
                                             />
                                         </Box>

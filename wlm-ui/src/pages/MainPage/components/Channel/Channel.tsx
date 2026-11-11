@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import Alert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -17,6 +18,7 @@ import {
     postSetting,
     postPidOperation,
     postPidSetting,
+    postFocus,
     tryLock,
     releaseLock,
 } from '../../../../store/slices/channel/channel';
@@ -41,12 +43,16 @@ const Card = styled(MuiCard)(({ theme }) => ({
     boxShadow: 'hsla(220, 10%, 5%, 0.02) 0px 5px 10px 0px',
 }));
 
-type Props = ChannelInfo & { dragHandleProps: DraggableProvidedDragHandleProps | null };
+type Props = ChannelInfo & {
+    dragHandleProps: DraggableProvidedDragHandleProps | null;
+    focusedChannel: number | null;
+};
 
 const Channel = (props: Props) => {
     const [isInUseRequestPending, setIsInUseRequestPending] = useState<boolean>(false);
     const [isLockRequestPending, setIsLockRequestPending] = useState<boolean>(false);
     const [isPidRequestPending, setIsPidRequestPending] = useState<boolean>(false);
+    const [isFocusRequestPending, setIsFocusRequestPending] = useState<boolean>(false);
     const [isFrequencyOpen, setIsFrequencyOpen] = useState<boolean>(false);
     const [shouldUpdatePlot, setShouldUpdatePlot] = useState<boolean>(true);
     const [isPatternOpen, setIsPatternOpen] = useState<boolean>(false);
@@ -92,6 +98,8 @@ const Channel = (props: Props) => {
         : null;
 
     const canUpdateSettings = props.hasLock && !isLockRequestPending;
+    const isFocused = props.focusedChannel === channel;
+    const isPausedByFocus = props.focusedChannel !== null && !isFocused && props.operation.on;
     const canControlDac = canUpdateSettings && !props.hasPid && !isPidRequestPending;
 
     useEffect(() => {
@@ -164,6 +172,12 @@ const Channel = (props: Props) => {
         dispatch(postPidOperation({ channel: channel, hasPid: hasPid }));
     };
 
+    const handleFocusToggle = () => {
+        setIsFocusRequestPending(true);
+        dispatch(postFocus({ channel: channel, on: !isFocused }))
+            .finally(() => setIsFocusRequestPending(false));
+    };
+
     const handlePidSettingChange = (setting: Partial<PidSettingType>) => {
         dispatch(postPidSetting({ channel: channel, ...setting }));
     };
@@ -192,13 +206,21 @@ const Channel = (props: Props) => {
                 isInUseRequestPending={isInUseRequestPending}
                 isLockRequestPending={isLockRequestPending}
                 isPidRequestPending={isPidRequestPending}
+                focusedChannel={props.focusedChannel}
+                isFocusRequestPending={isFocusRequestPending}
                 areHeaderSocketsConnected={areHeaderSocketsConnected}
                 requestersText={requestersText}
                 lockText={lockText}
                 onInUseChange={onClickSetInUse}
                 onLockToggle={handleLockToggle}
                 onPidToggle={handlePidToggle}
+                onFocusToggle={handleFocusToggle}
             />
+            {isPausedByFocus && (
+                <Alert severity='info' variant='outlined' sx={{ paddingY: 0 }}>
+                    Paused while channel {props.focusedChannel} is focused.
+                </Alert>
+            )}
             {isMeasurementSocketConnected ? (
                 <FrequencyPanel
                     isOpen={isFrequencyOpen}

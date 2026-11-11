@@ -6,6 +6,8 @@ import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
+import CenterFocusWeakIcon from '@mui/icons-material/CenterFocusWeak';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { OperationType, LockType, PidType } from '../../../../../store/slices/channel/channel';
@@ -23,12 +25,15 @@ type Props = {
     isInUseRequestPending: boolean;
     isLockRequestPending: boolean;
     isPidRequestPending: boolean;
+    focusedChannel: number | null;
+    isFocusRequestPending: boolean;
     areHeaderSocketsConnected: boolean;
     requestersText: string;
     lockText: string;
     onInUseChange: (inUse: boolean) => void;
     onLockToggle: (hasLock: boolean) => void;
     onPidToggle: (hasPid: boolean) => void;
+    onFocusToggle: () => void;
 };
 
 const ChannelHeader = ({
@@ -44,13 +49,26 @@ const ChannelHeader = ({
     isInUseRequestPending,
     isLockRequestPending,
     isPidRequestPending,
+    focusedChannel,
+    isFocusRequestPending,
     areHeaderSocketsConnected,
     requestersText,
     lockText,
     onInUseChange,
     onLockToggle,
     onPidToggle,
+    onFocusToggle,
 }: Props) => {
+    const isFocused = focusedChannel === channel;
+    const canToggleFocus = !isFocusRequestPending && hasLock && (
+        isFocused || (focusedChannel === null && operation.on)
+    );
+    const focusText = isFocused
+        ? 'Only this channel is being measured.'
+        : focusedChannel !== null
+            ? `Channel ${focusedChannel} is focused.`
+            : 'All running channels are measured in turn.';
+
     return (
         <Stack
             direction='row'
@@ -159,6 +177,43 @@ const ChannelHeader = ({
                                 onChange={() => {
                                     onLockToggle(hasLock);
                                 }}
+                            />
+                        </Grid>
+                    </Grid>
+                    <Grid
+                        container
+                        size={12}
+                        sx={{ display: 'flex', alignItems: 'center' }}
+                    >
+                        <Grid
+                            size={5.5}
+                            sx={{ display: 'flex', justifyContent: 'flex-start' }}
+                        >
+                            <Tooltip title={focusText} placement='top'>
+                                <Typography variant='overline'>
+                                    {isFocused ? 'FOCUS' : 'SHARED'}
+                                </Typography>
+                            </Tooltip>
+                        </Grid>
+                        <Grid
+                            size={2}
+                            sx={{ display: 'flex', justifyContent: 'center' }}
+                        >
+                            {isFocused ? (
+                                <CenterFocusStrongIcon fontSize='small' color='primary' />
+                            ) : (
+                                <CenterFocusWeakIcon fontSize='small' />
+                            )}
+                        </Grid>
+                        <Grid
+                            size={4.5}
+                            sx={{ display: 'flex', justifyContent: 'flex-end' }}
+                        >
+                            <Switch
+                                checked={isFocused}
+                                disabled={!canToggleFocus}
+                                size='small'
+                                onChange={onFocusToggle}
                             />
                         </Grid>
                     </Grid>

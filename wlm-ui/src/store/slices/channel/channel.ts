@@ -62,10 +62,13 @@ export interface ChannelInfo {
 
 export interface ChannelListInfo {
     channels: ChannelInfo[];
+    // Channel measured exclusively while the other channels are paused.
+    focusedChannel: number | null;
 };
 
 const initialState: ChannelListInfo = {
     channels: [],
+    focusedChannel: null,
 };
 
 const getChannelInfo = (state: ChannelListInfo, channel: number) => (
@@ -148,6 +151,15 @@ export const releaseLock = createAsyncThunk(
     },
 );
 
+export const postFocus = createAsyncThunk(
+    'channel/postFocus',
+    async (payload: Pick<ChannelType, 'channel'> & { on: boolean }) => {
+        const { channel, on } = payload;
+        await axios.post(`/api/focus/${channel}/`, { 'on': on });
+        return { channel: channel, on: on };
+    },
+);
+
 export const channelListSlice = createSlice({
     name: 'channel',
     initialState,
@@ -221,6 +233,9 @@ export const channelListSlice = createSlice({
                 info.measurements.push(measurements);
             }
         },
+        fetchFocus: (state, action: PayloadAction<{ channel: number | null }>) => {
+            state.focusedChannel = action.payload.channel;
+        },
         fetchLock: (
             state, action: PayloadAction<Pick<ChannelType, 'channel'> & { lock: LockType }>
         ) => {
@@ -282,6 +297,10 @@ export const channelListSlice = createSlice({
             .addCase(postPidOperation.fulfilled, (state, action) => {
                 const info = getChannelInfoWithException(state, action.payload.channel);
                 info.hasPid = action.payload.hasPid;
+            })
+            .addCase(postFocus.fulfilled, (state, action) => {
+                const { channel, on } = action.payload;
+                state.focusedChannel = on ? channel : null;
             })
     },
 });
