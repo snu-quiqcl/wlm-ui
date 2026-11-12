@@ -42,6 +42,62 @@ const toChartData = (pattern: number[]): { x: number, y: number }[] => {
     return data;
 };
 
+// Titles of the known signals, in the order the WLM software shows them.
+const PATTERN_TITLES: Record<string, string> = {
+    interferometers: 'Interferometers',
+    wide: 'Wide interferometer',
+};
+
+const PatternChart = ({ pattern }: { pattern: number[] }) => {
+    const chartData = useMemo(() => toChartData(pattern), [pattern]);
+
+    return (
+        <ResponsiveLine
+            data={[
+                {
+                    id: 'pattern',
+                    data: chartData,
+                },
+            ]}
+            xScale={{
+                type: 'linear',
+                min: 0,
+                max: pattern.length - 1,
+            }}
+            yScale={{
+                type: 'linear',
+                min: 'auto',
+                max: 'auto',
+            }}
+            margin={{
+                top: 10,
+                right: 30,
+                bottom: 40,
+                left: 60,
+            }}
+            curve='linear'
+            lineWidth={1}
+            enablePoints={false}
+            enableGridX
+            enableGridY
+            axisBottom={{
+                tickValues: 5,
+                legend: 'Pixel',
+                legendOffset: 32,
+                legendPosition: 'middle',
+            }}
+            axisLeft={{
+                tickValues: 5,
+                legend: 'Intensity',
+                legendOffset: -50,
+                legendPosition: 'middle',
+            }}
+            isInteractive={false}
+            animate={false}
+        />
+    );
+};
+
 type Props = {
     isOpen: boolean;
     onToggle: () => void;
@@ -49,10 +105,11 @@ type Props = {
 };
 
 const PatternPanel = ({ isOpen, onToggle, pattern }: Props) => {
-    const chartData = useMemo(
-        () => (pattern === null ? [] : toChartData(pattern.pattern)),
-        [pattern],
-    );
+    // Known signals first in their usual order, then any others the server may send.
+    const names = pattern === null ? [] : [
+        ...Object.keys(PATTERN_TITLES).filter(name => name in pattern.patterns),
+        ...Object.keys(pattern.patterns).filter(name => !(name in PATTERN_TITLES)),
+    ];
 
     const statusText = pattern === null
         ? 'Waiting for the pattern...'
@@ -82,51 +139,16 @@ const PatternPanel = ({ isOpen, onToggle, pattern }: Props) => {
                     <Typography variant='body2' sx={{ alignSelf: 'flex-start' }}>
                         {statusText}
                     </Typography>
-                    <Box sx={{ width: '90%', height: '250px' }}>
-                        {pattern !== null && <ResponsiveLine
-                            data={[
-                                {
-                                    id: 'pattern',
-                                    data: chartData,
-                                },
-                            ]}
-                            xScale={{
-                                type: 'linear',
-                                min: 0,
-                                max: pattern.pattern.length - 1,
-                            }}
-                            yScale={{
-                                type: 'linear',
-                                min: 'auto',
-                                max: 'auto',
-                            }}
-                            margin={{
-                                top: 10,
-                                right: 30,
-                                bottom: 40,
-                                left: 60,
-                            }}
-                            curve='linear'
-                            lineWidth={1}
-                            enablePoints={false}
-                            enableGridX
-                            enableGridY
-                            axisBottom={{
-                                tickValues: 5,
-                                legend: 'Pixel',
-                                legendOffset: 32,
-                                legendPosition: 'middle',
-                            }}
-                            axisLeft={{
-                                tickValues: 5,
-                                legend: 'Intensity',
-                                legendOffset: -50,
-                                legendPosition: 'middle',
-                            }}
-                            isInteractive={false}
-                            animate={false}
-                        />}
-                    </Box>
+                    {pattern !== null && names.map(name => (
+                        <Stack key={name} sx={{ width: '90%', alignItems: 'flex-start' }}>
+                            <Typography variant='caption' sx={{ fontWeight: 'bold' }}>
+                                {PATTERN_TITLES[name] ?? name}
+                            </Typography>
+                            <Box sx={{ width: '100%', height: '200px' }}>
+                                <PatternChart pattern={pattern.patterns[name]} />
+                            </Box>
+                        </Stack>
+                    ))}
                 </Stack>
             </Collapse>
         </Stack>

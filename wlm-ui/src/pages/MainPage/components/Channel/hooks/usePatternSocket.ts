@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 
 export interface PatternType {
-    pattern: number[];
+    // Intensities in CCD pixel order for each signal the WLM provides,
+    // keyed by 'interferometers' and 'wide'.
+    patterns: Record<string, number[]>;
     measuredAt: string;
 };
 
