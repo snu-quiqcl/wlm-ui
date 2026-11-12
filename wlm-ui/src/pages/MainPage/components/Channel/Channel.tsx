@@ -72,6 +72,7 @@ const Channel = (props: Props) => {
         : isOperationSocketConnected && isLockSocketConnected;
 
     const {
+        latestFrequency,
         latestMeasurementText,
         chartData,
         timeWindow,
@@ -80,6 +81,10 @@ const Channel = (props: Props) => {
         timeSliderMarks,
         handleTimeSlider,
     } = useMeasurementWindow(props.measurements, shouldUpdatePlot);
+
+    const targetFrequency = props.channel.hasDacInfo
+        ? props.pid.setting.targetFrequency
+        : null;
 
     const canUpdateSettings = props.hasLock && !isLockRequestPending;
     const canControlDac = canUpdateSettings && !props.hasPid && !isPidRequestPending;
@@ -193,7 +198,9 @@ const Channel = (props: Props) => {
                 <FrequencyPanel
                     isOpen={isFrequencyOpen}
                     onToggle={() => setIsFrequencyOpen(!isFrequencyOpen)}
+                    latestFrequency={latestFrequency}
                     latestMeasurementText={latestMeasurementText}
+                    targetFrequency={targetFrequency}
                     shouldUpdatePlot={shouldUpdatePlot}
                     onShouldUpdatePlotChange={setShouldUpdatePlot}
                     chartData={chartData}

@@ -13,6 +13,8 @@ import { ChannelInfo, fetchList, selectChannelList } from '../../../../store/sli
 import { calibrate, selectCalibration } from '../../../../store/slices/calibration/calibration';
 import Channel from '../Channel/Channel';
 
+const CHANNEL_ORDER_STORAGE_KEY = 'wlm_channel_order';
+
 const ChannelList = () => {
     const [channels, setChannels] = useState<ChannelInfo[]>([]);
     const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
@@ -30,7 +32,31 @@ const ChannelList = () => {
     }, [channels]);
 
     useEffect(() => {
+        const savedOrderStr = localStorage.getItem(CHANNEL_ORDER_STORAGE_KEY);
+        let savedOrder: number[] | null = null;
+        
+        if (savedOrderStr) {
+            try {
+                savedOrder = JSON.parse(savedOrderStr);
+            } catch (e) {
+                console.error('Failed to parse saved channel order:', e);
+            }
+        }
+
         const newChannels = [...channelListState.channels].sort((a, b) => {
+            if (savedOrder) {
+                const idx_a = savedOrder.indexOf(a.channel.channel);
+                const idx_b = savedOrder.indexOf(b.channel.channel);
+                
+                if (idx_a !== -1 && idx_b !== -1) {
+                    return idx_a - idx_b;
+                } else if (idx_a !== -1 && idx_b === -1) {
+                    return -1;
+                } else if (idx_a === -1 && idx_b !== -1) {
+                    return 1;
+                }
+            }
+            
             const idx_a = channelsRef.current.findIndex(
                 info => info.channel.channel === a.channel.channel);
             const idx_b = channelsRef.current.findIndex(
@@ -69,6 +95,9 @@ const ChannelList = () => {
         const [info] = newChannels.splice(source.index, 1);
         newChannels.splice(destination.index, 0, info);
         setChannels(newChannels);
+
+        const channelOrder = newChannels.map(ch => ch.channel.channel);
+        localStorage.setItem(CHANNEL_ORDER_STORAGE_KEY, JSON.stringify(channelOrder));
     }
 
     const onClickCalibration = async () => {

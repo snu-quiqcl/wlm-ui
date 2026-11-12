@@ -1,7 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Collapse from '@mui/material/Collapse';
 import FormControl from '@mui/material/FormControl';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -72,8 +71,8 @@ const SettingsPanel = ({
                     <ExpandMoreIcon />
                 </IconButton>
             </Stack>
-            <Collapse in={isOpen} sx={{ marginTop: 1 }}>
-                <Stack spacing={1}>
+            {isOpen && (
+                <Stack spacing={1} sx={{ marginTop: 1 }}>
                     <Stack
                         direction='row'
                         spacing={4}
@@ -197,7 +196,7 @@ const SettingsPanel = ({
                         </Button>
                     </Stack>
                 </Stack>
-            </Collapse>
+            )}
         </Stack>
     );
 };

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
-import Collapse from '@mui/material/Collapse';
 import FormControl from '@mui/material/FormControl';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -176,7 +175,7 @@ const DacOutputPanel = ({
                     <ExpandMoreIcon />
                 </IconButton>
             </Stack>
-            <Collapse in={isOpen} sx={{ marginTop: 1 }}>
+            {isOpen && (
                 <Stack spacing={1}>
                     <Stack
                         direction='row'
@@ -303,7 +302,7 @@ const DacOutputPanel = ({
                         </Stack>
                     </Stack>
                 </Stack>
-            </Collapse>
+            )}
         </Stack>
     );
 };
