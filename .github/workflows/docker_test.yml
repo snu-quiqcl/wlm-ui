@@ -28,4 +28,4 @@ jobs:
       working-directory: wlm-ui
       run: docker build -t ${{ vars.DOCKER_USERNAME }}/${{ vars.DOCKER_IMAGE }}:interference_pattern_test .
     - name: Push Docker image to Docker Hub
-      run: docker push ${{ vars.DOCKER_USERNAME }}/${{ vars.DOCKER_IMAGE }}:interferencepattern_test
+      run: docker push ${{ vars.DOCKER_USERNAME }}/${{ vars.DOCKER_IMAGE }}:interference_pattern_test
