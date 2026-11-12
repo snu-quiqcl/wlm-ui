@@ -23,7 +23,7 @@ type Props = {
     isInUseRequestPending: boolean;
     isLockRequestPending: boolean;
     isPidRequestPending: boolean;
-    areAllSocketsConnected: boolean;
+    areHeaderSocketsConnected: boolean;
     requestersText: string;
     lockText: string;
     onInUseChange: (inUse: boolean) => void;
@@ -44,7 +44,7 @@ const ChannelHeader = ({
     isInUseRequestPending,
     isLockRequestPending,
     isPidRequestPending,
-    areAllSocketsConnected,
+    areHeaderSocketsConnected,
     requestersText,
     lockText,
     onInUseChange,
@@ -68,7 +68,7 @@ const ChannelHeader = ({
                     {channelName}
                 </Typography>
             </Stack>
-            {areAllSocketsConnected ? (
+            {areHeaderSocketsConnected ? (
                 <Grid container sx={{ width: 140 }}>
                     <Grid
                         container

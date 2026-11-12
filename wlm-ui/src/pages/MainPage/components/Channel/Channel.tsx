@@ -56,8 +56,20 @@ const Channel = (props: Props) => {
     const dispatch = useDispatch<AppDispatch>();
     const channel = props.channel.channel;
 
-    const { areAllSocketsConnected, sendDacVoltage } = useChannelSockets(
-        channel, props.hasLock, props.channel.hasDacInfo);
+    const {
+        isOperationSocketConnected,
+        isLockSocketConnected,
+        isPidOperationSocketConnected,
+        isMeasurementSocketConnected,
+        isSettingSocketConnected,
+        isDacOutputSocketConnected,
+        isPidSettingSocketConnected,
+        sendDacVoltage
+    } = useChannelSockets(channel, props.hasLock, props.channel.hasDacInfo);
+
+    const areHeaderSocketsConnected = props.channel.hasDacInfo
+        ? isOperationSocketConnected && isLockSocketConnected && isPidOperationSocketConnected
+        : isOperationSocketConnected && isLockSocketConnected;
 
     const {
         latestMeasurementText,
@@ -170,14 +182,14 @@ const Channel = (props: Props) => {
                 isInUseRequestPending={isInUseRequestPending}
                 isLockRequestPending={isLockRequestPending}
                 isPidRequestPending={isPidRequestPending}
-                areAllSocketsConnected={areAllSocketsConnected}
+                areHeaderSocketsConnected={areHeaderSocketsConnected}
                 requestersText={requestersText}
                 lockText={lockText}
                 onInUseChange={onClickSetInUse}
                 onLockToggle={handleLockToggle}
                 onPidToggle={handlePidToggle}
             />
-            {areAllSocketsConnected ? (
+            {isMeasurementSocketConnected ? (
                 <FrequencyPanel
                     isOpen={isFrequencyOpen}
                     onToggle={() => setIsFrequencyOpen(!isFrequencyOpen)}
@@ -194,7 +206,7 @@ const Channel = (props: Props) => {
             ) : (
                 <Skeleton variant='rounded' height={50} />
             )}
-            {areAllSocketsConnected ? (
+            {isSettingSocketConnected ? (
                 <SettingsPanel
                     isOpen={isSettingOpen}
                     onToggle={() => setIsSettingOpen(!isSettingOpen)}
@@ -206,7 +218,7 @@ const Channel = (props: Props) => {
             ) : (
                 <Skeleton variant='rounded' height={50} />
             )}
-            {props.channel.hasDacInfo && areAllSocketsConnected ? (
+            {props.channel.hasDacInfo && isDacOutputSocketConnected ? (
                 <DacOutputPanel
                     isOpen={isDacOutputOpen}
                     onToggle={() => setIsDacOutputOpen(!isDacOutputOpen)}
@@ -218,7 +230,7 @@ const Channel = (props: Props) => {
             ) : (
                 props.channel.hasDacInfo && <Skeleton variant='rounded' height={50} />
             )}
-            {props.channel.hasDacInfo && areAllSocketsConnected ? (
+            {props.channel.hasDacInfo && isPidSettingSocketConnected ? (
                 <PidSettingPanel
                     isOpen={isPidSettingOpen}
                     onToggle={() => setIsPidSettingOpen(!isPidSettingOpen)}
